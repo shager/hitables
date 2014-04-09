@@ -1,4 +1,6 @@
+#include "box.hpp"
 #include "treenode.hpp"
+#include "parse.hpp"
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE hitables_tests
@@ -301,4 +303,37 @@ BOOST_AUTO_TEST_CASE(treenode_random_dim) {
     const size_t dim = node.random_dim();
     BOOST_CHECK(dim == 0 || dim == 1);
   }
+}
+
+/*****************************************************************************
+ *                         P A R S E   T E S T S                             *
+ *****************************************************************************/
+
+BOOST_AUTO_TEST_CASE(parse_split) {
+  StrVector res;
+  BOOST_CHECK_EQUAL(parse::split("a b c", " ", res), 0);
+  BOOST_CHECK_EQUAL(res.size(), 3);
+  BOOST_CHECK(res.at(0) == "a");
+  BOOST_CHECK(res.at(1) == "b");
+  BOOST_CHECK(res.at(2) == "c");
+  res.clear();
+
+  BOOST_CHECK_EQUAL(parse::split("a b c", "x", res), 0);
+  BOOST_CHECK_EQUAL(res.size(), 1);
+  BOOST_CHECK(res.at(0) == "a b c");
+  res.clear();
+
+  BOOST_CHECK_EQUAL(parse::split("aa", "a", res), 0);
+  BOOST_CHECK_EQUAL(res.size(), 3);
+  BOOST_CHECK(res.at(0) == "");
+  BOOST_CHECK(res.at(1) == "");
+  BOOST_CHECK(res.at(2) == "");
+  res.clear();
+
+  BOOST_CHECK_EQUAL(parse::split("", "a", res), 0);
+  BOOST_CHECK_EQUAL(res.size(), 1);
+  BOOST_CHECK(res.at(0) == "");
+  res.clear();
+
+  BOOST_CHECK_EQUAL(parse::split("abc", "", res), 1);
 }

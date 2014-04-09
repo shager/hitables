@@ -11,8 +11,8 @@ parse.o: parse.cpp parse.hpp
 treenode.o: treenode.cpp treenode.hpp
 	$(CC) -c treenode.cpp $(CFLAGS)
 
-tests: tests.cpp box.o treenode.o
-	$(CC) -o tests tests.cpp box.o treenode.o $(TFLAGS)
+tests: tests.cpp box.o parse.o treenode.o
+	$(CC) -o tests tests.cpp box.o parse.o treenode.o $(TFLAGS)
 
 clean:
 	rm -f box.o
