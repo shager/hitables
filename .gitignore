@@ -1,3 +1,5 @@
-*.o
+src/*.o
+*.swp
 *.pyc
 src/tests
+
