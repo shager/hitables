@@ -1,6 +1,7 @@
 #include "box.hpp"
 #include "treenode.hpp"
 #include "parse.hpp"
+#include <cstdio>
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE hitables_tests
@@ -336,4 +337,50 @@ BOOST_AUTO_TEST_CASE(parse_split) {
   res.clear();
 
   BOOST_CHECK_EQUAL(parse::split("abc", "", res), 1);
+}
+
+BOOST_AUTO_TEST_CASE(parse_trim) {
+  string s("  a");
+  parse::trim(s);
+  BOOST_CHECK(s == "a");
+
+  s = "a";
+  parse::trim(s);
+  BOOST_CHECK(s == "a");
+
+  s = "a  ";
+  parse::trim(s);
+  BOOST_CHECK(s == "a");
+
+  s = " \r \n a \n\r\t a  \n \t";
+  parse::trim(s);
+  BOOST_CHECK(s == "a \n\r\t a");
+
+  s = "";
+  parse::trim(s);
+  BOOST_CHECK(s == "");
+
+  s = "   ";
+  parse::trim(s);
+  BOOST_CHECK(s == "");
+
+  s = "    \n \r \t   ";
+  parse::trim(s);
+  BOOST_CHECK(s == "");
+}
+
+BOOST_AUTO_TEST_CASE(parse_file_read_lines) {
+  ofstream out;
+  const string fn("___TEST_FILE___");
+  out.open(fn);
+  out << "a\nb\nc\n";
+  out.close();
+
+  StrVector lines;
+  BOOST_CHECK_EQUAL(parse::file_read_lines(fn, lines), 0);
+  BOOST_CHECK_EQUAL(lines.size(), 3);
+  BOOST_CHECK(lines[0] == "a");
+  BOOST_CHECK(lines[1] == "b");
+  BOOST_CHECK(lines[2] == "c");
+  std::remove(fn.c_str());
 }

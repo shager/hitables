@@ -3,13 +3,15 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
 
 typedef std::vector<std::string> StrVector;
 
 namespace parse {
   
   int split(const std::string& str, const std::string& sep, StrVector& parts);
-  void file_read_lines(const std::string& path, StrVector& lines);
+  void trim(std::string& str);
+  int file_read_lines(const std::string& path, StrVector& lines);
 
 }
 
