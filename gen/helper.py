@@ -1,7 +1,7 @@
 #import iptools
 import math
 protocols = ('tcp', 'udp')
-actions = ('ACCEPT', 'DROP')
+actions = ('ACCEPT', 'DROP', 'REJECT')
 
 MIN_PORT = 0
 MAX_PORT = math.pow(2, 16) - 1
