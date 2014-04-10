@@ -5,7 +5,7 @@ TFLAGS=$(CFLAGS) -lboost_unit_test_framework
 box.o: box.cpp box.hpp
 	$(CC) -c box.cpp $(CFLAGS)
 
-parse.o: parse.cpp parse.hpp
+parse.o: parse.cpp parse.hpp rule.hpp partial_ruleset.hpp
 	$(CC) -c parse.cpp $(CFLAGS)
 
 treenode.o: treenode.cpp treenode.hpp
