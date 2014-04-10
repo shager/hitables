@@ -64,3 +64,46 @@ int parse::file_read_lines(const std::string& path, StrVector& lines) {
   in.close();
   return 0;
 }
+
+
+int parse::parse_ruleset(const StrVector& lines, RuleVector& rules) {
+  const size_t num_lines = lines.size();
+  for (size_t i = 0; i < num_lines; ++i) {
+    const std::string& line(lines[i]);
+    const char first = line[0];
+    if (first == ':' || first == '*' || first == '#')
+      continue;
+  }
+  return 0;
+}
+
+
+inline bool is_num(const char c) {
+  return c >= 48 && c <= 57;
+}
+
+
+int64_t parse::parse_ip(const std::string& str) {
+  StrVector parts;
+  parse::split(str, ".", parts);
+  if (parts.size() != 4)
+    return -1;
+  uint32_t ip_val = 0;
+  uint32_t shift = 24;
+  for (size_t i = 0; i < 4; ++i) {
+    const std::string& octet = parts[i];
+    const size_t octet_len = octet.size();
+    if (octet_len > 3)
+      return -1;
+    for (size_t j = 0; j < octet_len; ++j)
+      if (!is_num(octet[j]))
+        return -1;
+    int octet_val;
+    sscanf(octet.c_str(), "%d", &octet_val);
+    if (octet_val < 0 || octet_val > 255)
+      return -1;
+    ip_val |= (octet_val << shift);
+    shift -= 8;
+  }
+  return ip_val;
+}

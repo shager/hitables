@@ -5,6 +5,7 @@
 #include <string>
 #include <sys/stat.h>
 #include <fstream>
+#include <cstdint>
 #include "rule.hpp"
 
 typedef std::vector<std::string> StrVector;
@@ -27,9 +28,9 @@ namespace parse {
    * amenable for HiCuts processing.
    * Returns 0 on success and 1 in case of parse errors.
    */
-  void parse_ruleset(const StrVector& lines, RuleVector& rules);
+  int parse_ruleset(const StrVector& lines, RuleVector& rules);
 
-
+  int64_t parse_ip(const std::string& str);
 
 }
 
