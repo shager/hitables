@@ -42,7 +42,15 @@ void parse::trim(std::string& str) {
 }
 
 
+inline bool file_exists(const std::string& path) {
+  struct stat buffer;
+  return stat(path.c_str(), &buffer) == 0;
+}
+
+
 int parse::file_read_lines(const std::string& path, StrVector& lines) {
+  if (!file_exists(path))
+    return 1;
   std::ifstream in;
   std::string line;
   in.open(path);

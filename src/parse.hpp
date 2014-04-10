@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <sys/stat.h>
 #include <fstream>
 
 typedef std::vector<std::string> StrVector;

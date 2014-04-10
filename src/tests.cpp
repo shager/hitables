@@ -373,7 +373,7 @@ BOOST_AUTO_TEST_CASE(parse_file_read_lines) {
   ofstream out;
   const string fn("___TEST_FILE___");
   out.open(fn);
-  out << "a\nb\nc\n";
+  out << "a\nb\n\n   \n\nc\n";
   out.close();
 
   StrVector lines;
@@ -382,5 +382,17 @@ BOOST_AUTO_TEST_CASE(parse_file_read_lines) {
   BOOST_CHECK(lines[0] == "a");
   BOOST_CHECK(lines[1] == "b");
   BOOST_CHECK(lines[2] == "c");
+  lines.clear();
   std::remove(fn.c_str());
+
+  out.open(fn);
+  out.close();
+  BOOST_CHECK_EQUAL(parse::file_read_lines(fn, lines), 0);
+  BOOST_CHECK_EQUAL(lines.size(), 0);
+  lines.clear();
+  std::remove(fn.c_str());
+
+  const string na("___SOME_VERY_NONEXISTING_FILE___");
+  BOOST_CHECK_EQUAL(parse::file_read_lines(na, lines), 1);
+  BOOST_CHECK_EQUAL(lines.size(), 0);
 }
