@@ -83,27 +83,53 @@ inline bool is_num(const char c) {
 }
 
 
-int64_t parse::parse_ip(const std::string& str) {
+uint32_t parse::parse_ip(const std::string& str) {
   StrVector parts;
   parse::split(str, ".", parts);
   if (parts.size() != 4)
-    return -1;
+    throw 1;
   uint32_t ip_val = 0;
   uint32_t shift = 24;
   for (size_t i = 0; i < 4; ++i) {
     const std::string& octet = parts[i];
     const size_t octet_len = octet.size();
     if (octet_len > 3)
-      return -1;
+      throw 1;
     for (size_t j = 0; j < octet_len; ++j)
       if (!is_num(octet[j]))
-        return -1;
+        throw 1;
     int octet_val;
     sscanf(octet.c_str(), "%d", &octet_val);
     if (octet_val < 0 || octet_val > 255)
-      return -1;
+      throw 1;
     ip_val |= (octet_val << shift);
     shift -= 8;
   }
   return ip_val;
+}
+
+
+uint32_t parse::parse_port(const std::string& port) {
+  const size_t len = port.size();
+  if (len > 5 || len == 0)
+    throw 1;
+  for (size_t i = 0; i < len; ++i)
+    if (!is_num(port[i]))
+      throw 1;
+  int port_num;
+  sscanf(port.c_str(), "%d", &port_num);
+  if (port_num > 65535)
+    throw 1;
+  return static_cast<uint32_t>(port_num);
+}
+
+
+DimTuple parse::parse_port_range(const std::string& str) {
+  StrVector parts;
+  parse::split(str, ":", parts);
+  if (parts.size() != 2)
+    throw 1;
+  const uint32_t port1 = parse::parse_port(parts[0]);
+  const uint32_t port2 = parse::parse_port(parts[1]);
+  return std::make_tuple(port1, port2);
 }

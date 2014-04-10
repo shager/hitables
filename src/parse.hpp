@@ -30,8 +30,11 @@ namespace parse {
    */
   int parse_ruleset(const StrVector& lines, RuleVector& rules);
 
-  int64_t parse_ip(const std::string& str);
+  uint32_t parse_ip(const std::string& str);
 
+  uint32_t parse_port(const std::string& str);
+
+  DimTuple parse_port_range(const std::string& str);
 }
 
 #endif // HITABLES_PARSE_HPP
