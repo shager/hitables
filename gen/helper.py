@@ -1,10 +1,12 @@
 #import iptools
-protocols = ('tcp', 'udp', 'udplite', 'icmp', 'icmpv6', 'esp', 'ah', 'sctp', 'mh', 'all')
+import math
+protocols = ('tcp', 'udp')
+actions = ('ACCEPT', 'DROP')
+
+MIN_PORT = 0
+MAX_PORT = math.pow(2, 16) - 1
 
 chains = ('INPUT', 'OUTPUT', 'FORWARD')
-
-tcp_port_range = {'max': 65000, 'min': 1000}
-udp_port_range = {'max': 65000, 'min': 1000}
 
 def checkValidIp(ipaddress):
     bytes = ipaddress.split('.')
