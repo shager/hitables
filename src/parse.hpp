@@ -12,6 +12,9 @@ typedef std::vector<std::string> StrVector;
 
 namespace parse {
   
+  const dim_t ip_min = 0;
+  const dim_t ip_max = UINT32_MAX;
+
   int split(const std::string& str, const std::string& sep, StrVector& parts);
 
   void trim(std::string& str);
@@ -35,6 +38,14 @@ namespace parse {
   uint32_t parse_port(const std::string& str);
 
   DimTuple parse_port_range(const std::string& str);
+
+  /*
+   * Parses a subnet of the form <IP_ADDR>/<NUM_MASK_BITS>.
+   * Returns a tuple of the minimum and maximum IP addresses in case of success.
+   * Throws 1 in case of failure.
+   */
+  DimTuple parse_subnet(const std::string& str);
+
 }
 
 #endif // HITABLES_PARSE_HPP

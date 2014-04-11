@@ -134,3 +134,36 @@ DimTuple parse::parse_port_range(const std::string& str) {
   const uint32_t port2 = parse::parse_port(parts[1]);
   return std::make_tuple(port1, port2);
 }
+
+
+DimTuple parse::parse_subnet(const std::string& str) {
+  StrVector parts;
+  parse::split(str, "/", parts);
+  const size_t num_parts = parts.size();
+  if (num_parts == 1) {
+    const dim_t ip_val = parse::parse_ip(parts[0]);
+    return std::make_tuple(ip_val, ip_val);
+  } else if (num_parts > 2)
+    throw 1;
+  // we have a real subnet
+  const dim_t ip_val = parse::parse_ip(parts[0]);
+  // check mask
+  const std::string& mask_str = parts[1];
+  const size_t mask_len = mask_str.size();
+  if (mask_len == 0 || mask_len > 2)
+    throw 1;
+  for (size_t i = 0; i < mask_len; ++i)
+    if (!is_num(mask_str[i]))
+      throw 1;
+  int mask_val;
+  sscanf(mask_str.c_str(), "%d", &mask_val);
+  if (mask_val > 32)
+    throw 1;
+  // compute min and max ip of subnet
+  if (mask_val == 0)
+    return std::make_tuple(parse::ip_min, parse::ip_max);
+  const dim_t host_len = 32 - mask_val;
+  const dim_t min_ip = (ip_val >> host_len) << host_len;
+  const dim_t max_ip = min_ip + ((1 << host_len) - 1);
+  return std::make_tuple(min_ip, max_ip);
+}
