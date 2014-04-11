@@ -12,6 +12,8 @@ typedef std::vector<std::string> StrVector;
 
 namespace parse {
   
+  enum Protocol {TCP, UDP, ICMP};
+
   const dim_t ip_min = 0;
   const dim_t ip_max = UINT32_MAX;
 
@@ -40,11 +42,19 @@ namespace parse {
   DimTuple parse_port_range(const std::string& str);
 
   /*
-   * Parses a subnet of the form <IP_ADDR>/<NUM_MASK_BITS>.
+   * Parses a subnet string of the form <IP_ADDR>/<NUM_MASK_BITS>.
    * Returns a tuple of the minimum and maximum IP addresses in case of success.
    * Throws 1 in case of failure.
    */
   DimTuple parse_subnet(const std::string& str);
+
+
+  /*
+   * Parses a protocol string.
+   * Returns an identifier for the protocol in case of sucess.
+   * Throws 1 in case of failure.
+   */
+  parse::Protocol parse_protocol(const std::string& str);
 
 }
 

@@ -167,3 +167,14 @@ DimTuple parse::parse_subnet(const std::string& str) {
   const dim_t max_ip = min_ip + ((1 << host_len) - 1);
   return std::make_tuple(min_ip, max_ip);
 }
+
+
+parse::Protocol parse::parse_protocol(const std::string& str) {
+  if (str.compare(0, 3, "tcp") == 0)
+    return parse::TCP;
+  if (str.compare(0, 3, "udp") == 0)
+    return parse::UDP;
+  if (str.compare(0, 4, "icmp") == 0)
+    return parse::ICMP;
+  throw 1;
+}

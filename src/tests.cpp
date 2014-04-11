@@ -541,3 +541,19 @@ BOOST_AUTO_TEST_CASE(parse_parse_subnet) {
     BOOST_CHECK(thrown);
   }
 }
+
+
+BOOST_AUTO_TEST_CASE(parse_parse_protocol) {
+  BOOST_CHECK_EQUAL(parse::parse_protocol("tcp"), parse::TCP);
+  BOOST_CHECK_EQUAL(parse::parse_protocol("udp"), parse::UDP);
+  BOOST_CHECK_EQUAL(parse::parse_protocol("icmp"), parse::ICMP);
+
+  bool thrown = false;
+  try {
+    parse::parse_subnet("asdassdad");
+  } catch (const int code) {
+    BOOST_CHECK_EQUAL(code, 1);
+    thrown = true;
+  }
+  BOOST_CHECK(thrown);
+}
