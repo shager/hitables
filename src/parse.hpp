@@ -48,13 +48,12 @@ namespace parse {
    */
   DimTuple parse_subnet(const std::string& str);
 
-
   /*
    * Parses a protocol string.
    * Returns an identifier for the protocol in case of sucess.
    * Throws 1 in case of failure.
    */
-  parse::Protocol parse_protocol(const std::string& str);
+  Protocol parse_protocol(const std::string& str);
 
 }
 
