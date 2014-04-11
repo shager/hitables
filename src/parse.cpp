@@ -86,14 +86,15 @@ inline bool is_num(const char c) {
 uint32_t parse::parse_ip(const std::string& str) {
   StrVector parts;
   parse::split(str, ".", parts);
-  if (parts.size() != 4)
+  const size_t num_parts = parts.size();
+  if (num_parts > 4)
     throw 1;
   uint32_t ip_val = 0;
   uint32_t shift = 24;
-  for (size_t i = 0; i < 4; ++i) {
+  for (size_t i = 0; i < num_parts; ++i) {
     const std::string& octet = parts[i];
     const size_t octet_len = octet.size();
-    if (octet_len > 3)
+    if (octet_len == 0 || octet_len > 3)
       throw 1;
     for (size_t j = 0; j < octet_len; ++j)
       if (!is_num(octet[j]))

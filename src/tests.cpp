@@ -409,18 +409,36 @@ BOOST_AUTO_TEST_CASE(parse_parse_ruleset_simple) {
   BOOST_CHECK(rules.empty());
 }
 
+
 BOOST_AUTO_TEST_CASE(parse_parse_ip) {
   BOOST_CHECK_EQUAL(parse::parse_ip("1.2.3.4"), 16909060);
   BOOST_CHECK_EQUAL(parse::parse_ip("0.00.000.0"), 0);
   BOOST_CHECK_EQUAL(parse::parse_ip("255.255.255.255"), 4294967295);
-  bool thrown = false;
-  try {
-    parse::parse_ip("asdasd");
-  } catch (const int code) {
-    BOOST_CHECK_EQUAL(code, 1);
-    thrown = true;
+  StrVector faults;
+  faults.push_back("asdasd");
+  faults.push_back("1.2.3.4.5");
+  faults.push_back("1..2.3");
+  faults.push_back(" 1.2.3.4");
+  faults.push_back("1.2.3.4 ");
+  faults.push_back("1. 2.3");
+  faults.push_back("255.255.256.255");
+  for (size_t i = 0; i < faults.size(); ++i) {
+    bool thrown = false;
+    try {
+      parse::parse_ip(faults[i]);
+    } catch (const int code) {
+      BOOST_CHECK_EQUAL(code, 1);
+      thrown = true;
+    }
+    BOOST_CHECK(thrown);
   }
-  BOOST_CHECK(thrown);
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_parse_ip_prefix) {
+  BOOST_CHECK_EQUAL(parse::parse_ip("1.0.0.0"), parse::parse_ip("1"));
+  BOOST_CHECK_EQUAL(parse::parse_ip("1.0.0.0"), parse::parse_ip("1.0"));
+  BOOST_CHECK_EQUAL(parse::parse_ip("1.0.0.0"), parse::parse_ip("1.0.0"));
 }
 
 
