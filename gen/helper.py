@@ -3,7 +3,7 @@ import math
 protocols = ('tcp', 'udp')
 actions = ('ACCEPT', 'DROP')
 
-MIN_PORT = 0
+MIN_PORT = 5002
 MAX_PORT = math.pow(2, 16) - 1
 
 chains = ('INPUT', 'OUTPUT', 'FORWARD')
