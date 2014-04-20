@@ -396,3 +396,164 @@ BOOST_AUTO_TEST_CASE(parse_file_read_lines) {
   BOOST_CHECK_EQUAL(parse::file_read_lines(na, lines), 1);
   BOOST_CHECK_EQUAL(lines.size(), 0);
 }
+
+BOOST_AUTO_TEST_CASE(parse_parse_ruleset_simple) {
+  StrVector lines;
+  lines.push_back("*filter");
+  lines.push_back(":INPUT ACCEPT [0:0]");
+  lines.push_back(":FORWARD ACCEPT [0:0]");
+  lines.push_back(":OUTPUT ACCEPT [0:0]");
+  lines.push_back("COMMIT");
+  RuleVector rules;
+  BOOST_CHECK_EQUAL(parse::parse_ruleset(lines, rules), 0);
+  BOOST_CHECK(rules.empty());
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_parse_ip) {
+  BOOST_CHECK_EQUAL(parse::parse_ip("1.2.3.4"), 16909060);
+  BOOST_CHECK_EQUAL(parse::parse_ip("0.00.000.0"), 0);
+  BOOST_CHECK_EQUAL(parse::parse_ip("255.255.255.255"), 4294967295);
+  StrVector faults;
+  faults.push_back("asdasd");
+  faults.push_back("1.2.3.4.5");
+  faults.push_back("1..2.3");
+  faults.push_back(" 1.2.3.4");
+  faults.push_back("1.2.3.4 ");
+  faults.push_back("1. 2.3");
+  faults.push_back("255.255.256.255");
+  for (size_t i = 0; i < faults.size(); ++i) {
+    bool thrown = false;
+    try {
+      parse::parse_ip(faults[i]);
+    } catch (const int code) {
+      BOOST_CHECK_EQUAL(code, 1);
+      thrown = true;
+    }
+    BOOST_CHECK(thrown);
+  }
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_parse_ip_prefix) {
+  BOOST_CHECK_EQUAL(parse::parse_ip("1.0.0.0"), parse::parse_ip("1"));
+  BOOST_CHECK_EQUAL(parse::parse_ip("1.0.0.0"), parse::parse_ip("1.0"));
+  BOOST_CHECK_EQUAL(parse::parse_ip("1.0.0.0"), parse::parse_ip("1.0.0"));
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_parse_port) {
+  BOOST_CHECK_EQUAL(parse::parse_port("1"), 1);
+  BOOST_CHECK_EQUAL(parse::parse_port("65535"), 65535);
+  BOOST_CHECK_EQUAL(parse::parse_port("0"), 0);
+  BOOST_CHECK_EQUAL(parse::parse_port("123"), 123);
+  std::vector<std::string> faults;
+  faults.push_back("asdasdas");
+  faults.push_back("-1");
+  faults.push_back("  1  ");
+  faults.push_back("0001111");
+  faults.push_back("65536");
+  faults.push_back("");
+  for (size_t i = 0; i < faults.size(); ++i) {
+    bool thrown = false;
+    try {
+      parse::parse_port(faults[i]);
+    } catch (const int code) {
+      BOOST_CHECK_EQUAL(code, 1);
+      thrown = true;
+    }
+    BOOST_CHECK(thrown);
+  }
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_parse_port_range) {
+  DimTuple t1 = parse::parse_port_range("123:456");
+  BOOST_CHECK_EQUAL(get<0>(t1), 123);
+  BOOST_CHECK_EQUAL(get<1>(t1), 456);
+
+  DimTuple t2 = parse::parse_port_range("0:65535");
+  BOOST_CHECK_EQUAL(get<0>(t2), 0);
+  BOOST_CHECK_EQUAL(get<1>(t2), 65535);
+
+  std::vector<std::string> faults;
+  faults.push_back("");
+  faults.push_back(":1");
+  faults.push_back("1:");
+  faults.push_back("1 :1");
+  faults.push_back("1: 1");
+  faults.push_back(" 1:1");
+  faults.push_back("1:1 ");
+  for (size_t i = 0; i < faults.size(); ++i) {
+    bool thrown = false;
+    try {
+      parse::parse_port_range(faults[i]);
+    } catch (const int code) {
+      BOOST_CHECK_EQUAL(code, 1);
+      thrown = true;
+    }
+    BOOST_CHECK(thrown);
+  }
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_parse_subnet) {
+  DimTuple t1 = parse::parse_subnet("1.2.3.4/24");
+  BOOST_CHECK_EQUAL(get<0>(t1), parse::parse_ip("1.2.3.0"));
+  BOOST_CHECK_EQUAL(get<1>(t1), parse::parse_ip("1.2.3.255"));
+
+  DimTuple t2 = parse::parse_subnet("1.2.3.4");
+  BOOST_CHECK_EQUAL(get<0>(t2), parse::parse_ip("1.2.3.4"));
+  BOOST_CHECK_EQUAL(get<1>(t2), parse::parse_ip("1.2.3.4"));
+
+  DimTuple t3 = parse::parse_subnet("1/8");
+  BOOST_CHECK_EQUAL(get<0>(t3), parse::parse_ip("1.0.0.0"));
+  BOOST_CHECK_EQUAL(get<1>(t3), parse::parse_ip("1.255.255.255"));
+
+  DimTuple t4 = parse::parse_subnet("1/24");
+  BOOST_CHECK_EQUAL(get<0>(t4), parse::parse_ip("1.0.0.0"));
+  BOOST_CHECK_EQUAL(get<1>(t4), parse::parse_ip("1.0.0.255"));
+
+  DimTuple t5 = parse::parse_subnet("1/0");
+  BOOST_CHECK_EQUAL(get<0>(t5), parse::parse_ip("0.0.0.0"));
+  BOOST_CHECK_EQUAL(get<1>(t5), parse::parse_ip("255.255.255.255"));
+
+  DimTuple t6 = parse::parse_subnet("128/1");
+  BOOST_CHECK_EQUAL(get<0>(t6), 1 << 31);
+  BOOST_CHECK_EQUAL(get<1>(t6), parse::parse_ip("255.255.255.255"));
+
+  StrVector faults;
+  faults.push_back("asdsad");
+  faults.push_back("1//4");
+  faults.push_back(" 1.2.3.4/5");
+  faults.push_back("1.2.3.4/5 ");
+  faults.push_back("1/2/3");
+  faults.push_back("1.2.3.4/33");
+  faults.push_back("1.2.3.4/001");
+  for (size_t i = 0; i < faults.size(); ++i) {
+    bool thrown = false;
+    try {
+      parse::parse_subnet(faults[i]);
+    } catch (const int code) {
+      BOOST_CHECK_EQUAL(code, 1);
+      thrown = true;
+    }
+    BOOST_CHECK(thrown);
+  }
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_parse_protocol) {
+  BOOST_CHECK_EQUAL(parse::parse_protocol("tcp"), parse::TCP);
+  BOOST_CHECK_EQUAL(parse::parse_protocol("udp"), parse::UDP);
+  BOOST_CHECK_EQUAL(parse::parse_protocol("icmp"), parse::ICMP);
+
+  bool thrown = false;
+  try {
+    parse::parse_subnet("asdassdad");
+  } catch (const int code) {
+    BOOST_CHECK_EQUAL(code, 1);
+    thrown = true;
+  }
+  BOOST_CHECK(thrown);
+}

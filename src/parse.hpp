@@ -5,12 +5,18 @@
 #include <string>
 #include <sys/stat.h>
 #include <fstream>
+#include <cstdint>
 #include "rule.hpp"
 
 typedef std::vector<std::string> StrVector;
 
 namespace parse {
   
+  enum Protocol {TCP, UDP, ICMP};
+
+  const dim_t ip_min = 0;
+  const dim_t ip_max = UINT32_MAX;
+
   int split(const std::string& str, const std::string& sep, StrVector& parts);
 
   void trim(std::string& str);
@@ -27,9 +33,27 @@ namespace parse {
    * amenable for HiCuts processing.
    * Returns 0 on success and 1 in case of parse errors.
    */
-  void parse_ruleset(const StrVector& lines, RuleVector& rules);
+  int parse_ruleset(const StrVector& lines, RuleVector& rules);
 
+  uint32_t parse_ip(const std::string& str);
 
+  uint32_t parse_port(const std::string& str);
+
+  DimTuple parse_port_range(const std::string& str);
+
+  /*
+   * Parses a subnet string of the form <IP_ADDR>/<NUM_MASK_BITS>.
+   * Returns a tuple of the minimum and maximum IP addresses in case of success.
+   * Throws 1 in case of failure.
+   */
+  DimTuple parse_subnet(const std::string& str);
+
+  /*
+   * Parses a protocol string.
+   * Returns an identifier for the protocol in case of sucess.
+   * Throws 1 in case of failure.
+   */
+  Protocol parse_protocol(const std::string& str);
 
 }
 
