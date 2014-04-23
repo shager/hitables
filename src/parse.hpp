@@ -30,10 +30,25 @@ namespace parse {
    */
   int parse_ruleset(const StrVector& lines, RuleVector& rules);
 
+  /*
+   * Parses an IPv4 address in dotted decimal notation.
+   * Returns the numeric representation of the IPv4 address.
+   * Throws 1 in case of failure.
+   */
   uint32_t parse_ip(const std::string& str);
 
+  /*
+   * Parses a port number.
+   * Returns the numeric representation of the port number.
+   * Throws 1 in case of failure.
+   */
   uint32_t parse_port(const std::string& str);
 
+  /*
+   * Parses a port range of the form <START>:<END>.
+   * Returns a DimTuple in case of success.
+   * Throws 1 in case of failure.
+   */
   DimTuple parse_port_range(const std::string& str);
 
   /*
