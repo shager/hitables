@@ -14,7 +14,7 @@ parser.add_option('--debug', dest='debug', help='turn debug output on', action='
 parser.add_option('-p', '--protocol', dest='protocols', help='comma separated list of allowed protocols', default='tcp,udp')
 parser.add_option('-s', '--source', dest='sources', help='maximum portion of the full IPv4 address range', default='0.000001', type='float')
 parser.add_option('-d', '--destination', dest='destinations', help='maximum portion of the full IPv4 address range', default='0.000001', type='float')
-parser.add_option('-c', '--chain', dest='chain', help='target chain for all rules', default='FORWARD')
+parser.add_option('-c', '--chain', dest='chain', help='target chain for all rules', default='INPUT')
 parser.add_option('-r', '--randomseed', dest='randomseed', help='seed for the pseudo random number generator', default=time.time())
 parser.add_option('--sport', dest='sport', help='maximum source port range', default='0.02', type='float')
 parser.add_option('--dport', dest='dport', help='maximum destination port range', default='0.02', type='float')
@@ -148,7 +148,8 @@ for i in range(num):
             'destination_start_port': destination_start_port,
             'destination_end_port': destination_end_port,
             'protocol': protocol,
-            'action': action
+            'action': action,
+            'chain': chain
         }
     )
 
@@ -170,7 +171,8 @@ iptables_save.append(':INPUT ACCEPT [0:0]')
 iptables_save.append(':FORWARD ACCEPT [0:0]')
 iptables_save.append(':OUTPUT ACCEPT [0:0]')
 for rule in rule_set:
-    iptables_save.append('-A FORWARD -p %(protocol)s -m iprange --src-range %(source_start_address)s-%(source_end_address)s --dst-range %(destination_start_address)s-%(destination_end_address)s -m %(protocol)s --sport %(source_start_port)s:%(source_end_port)s --dport %(destination_start_port)s:%(destination_end_port)s -j %(action)s' % rule)
+    iptables_save.append('-A %(chain)s -p %(protocol)s -m iprange --src-range %(source_start_address)s-%(source_end_address)s --dst-range %(destination_start_address)s-%(destination_end_address)s -m %(protocol)s --sport %(source_start_port)s:%(source_end_port)s --dport %(destination_start_port)s:%(destination_end_port)s -j %(action)s' % rule)
+    #iptables_save.append('-A %(chain)s -p %(protocol)s -m iprange --src-range %(source_start_address)s-%(source_end_address)s --sport %(source_start_port)s:%(source_end_port)s -j %(action)s' % rule)
 iptables_save.append('COMMIT')
 iptables_save.append('# Completed on %s' % time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime()))
 
