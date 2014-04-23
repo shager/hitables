@@ -72,6 +72,12 @@ namespace parse {
    */
   ActionCode parse_action_code(const std::string& str);
 
+  /*
+   * Checks whether the iptables-save rule is applicable to HiTables usage.
+   * Expects the rule to be whitespace-split.
+   */
+  bool check_hitables_applicable(const StrVector& parts);
+
 }
 
 #endif // HITABLES_PARSE_HPP

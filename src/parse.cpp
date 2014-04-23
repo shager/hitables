@@ -191,3 +191,40 @@ ActionCode parse::parse_action_code(const std::string& str) {
     return JUMP;
   throw 1;
 }
+
+
+bool parse::check_hitables_applicable(const StrVector& parts) {
+  const size_t len = parts.size();
+  for (size_t i = 0; i < len; ++i) {
+    const std::string& word = parts[i];
+    if (word == "-A") {
+      ++i;
+      if (parts[i] != "INPUT" && parts[i] != "FORWARD" && parts[i] != "OUTPUT")
+        return false;
+
+    } else if (word == "-p") {
+      ++i;
+      if (parts[i] != "tcp" && parts[i] != "udp")
+        return false;
+
+    } else if (word == "-m") {
+      ++i;
+      if (parts[i] != "iprange" && parts[i] != "tcp" && parts[i] != "udp")
+        return false;
+
+    } else if (word == "--src-range" || word == "--dst-range") {
+      ++i;
+
+    } else if (word == "--sport" || word == "--dport") {
+      ++i;
+
+    } else if (word == "-j") {
+      ++i;
+      if (parts[i] != "ACCEPT" && parts[i] != "DROP" && parts[i] != "REJECT")
+        return false;
+
+    } else
+      return false;
+  }
+  return true;
+}

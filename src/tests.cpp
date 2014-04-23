@@ -574,3 +574,35 @@ BOOST_AUTO_TEST_CASE(parse_parse_action_code) {
   }
   BOOST_CHECK(thrown);
 }
+
+
+BOOST_AUTO_TEST_CASE(parse_check_hitables_applicable) {
+  StrVector parts;
+  parse::split("-A INPUT -p udp -j ACCEPT", " ", parts);
+  BOOST_CHECK(parse::check_hitables_applicable(parts));
+  parts.clear();
+
+  parse::split("-A INPUT -p icmp -j ACCEPT", " ", parts);
+  BOOST_CHECK(!parse::check_hitables_applicable(parts));
+  parts.clear();
+
+  parse::split("-A adasdas -p udp -j ACCEPT", " ", parts);
+  BOOST_CHECK(!parse::check_hitables_applicable(parts));
+  parts.clear();
+
+  parse::split("-A INPUT -p asdasd -j ACCEPT", " ", parts);
+  BOOST_CHECK(!parse::check_hitables_applicable(parts));
+  parts.clear();
+
+  parse::split("-A INPUT -blabla -j ACCEPT", " ", parts);
+  BOOST_CHECK(!parse::check_hitables_applicable(parts));
+  parts.clear();
+
+  parse::split("-A INPUT -p tcp -j asdjasdkj", " ", parts);
+  BOOST_CHECK(!parse::check_hitables_applicable(parts));
+  parts.clear();
+
+  parse::split("-A INPUT -p udp -m iprange --src-range 117.159.160.68-117.159.164.152 --dst-range 253.59.172.172-253.59.175.252 -m udp --sport 38435:39668 --dport 14309:14373 -j ACCEPT", " ", parts);
+  BOOST_CHECK(parse::check_hitables_applicable(parts));
+  parts.clear();
+}
