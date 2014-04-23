@@ -559,7 +559,7 @@ BOOST_AUTO_TEST_CASE(parse_parse_protocol) {
 }
 
 
-BOOST_AUTO_TEST_CASE(parse_parse_action) {
+BOOST_AUTO_TEST_CASE(parse_parse_action_code) {
   BOOST_CHECK_EQUAL(parse::parse_action_code("DROP"), DROP);
   BOOST_CHECK_EQUAL(parse::parse_action_code("ACCEPT"), ACCEPT);
   BOOST_CHECK_EQUAL(parse::parse_action_code("REJECT"), REJECT);
