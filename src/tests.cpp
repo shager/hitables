@@ -544,13 +544,30 @@ BOOST_AUTO_TEST_CASE(parse_parse_subnet) {
 
 
 BOOST_AUTO_TEST_CASE(parse_parse_protocol) {
-  BOOST_CHECK_EQUAL(parse::parse_protocol("tcp"), parse::TCP);
-  BOOST_CHECK_EQUAL(parse::parse_protocol("udp"), parse::UDP);
-  BOOST_CHECK_EQUAL(parse::parse_protocol("icmp"), parse::ICMP);
+  BOOST_CHECK_EQUAL(parse::parse_protocol("tcp"), TCP);
+  BOOST_CHECK_EQUAL(parse::parse_protocol("udp"), UDP);
+  BOOST_CHECK_EQUAL(parse::parse_protocol("icmp"), ICMP);
 
   bool thrown = false;
   try {
     parse::parse_subnet("asdassdad");
+  } catch (const int code) {
+    BOOST_CHECK_EQUAL(code, 1);
+    thrown = true;
+  }
+  BOOST_CHECK(thrown);
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_parse_action) {
+  BOOST_CHECK_EQUAL(parse::parse_action_code("DROP"), DROP);
+  BOOST_CHECK_EQUAL(parse::parse_action_code("ACCEPT"), ACCEPT);
+  BOOST_CHECK_EQUAL(parse::parse_action_code("REJECT"), REJECT);
+  BOOST_CHECK_EQUAL(parse::parse_action_code("JUMP"), JUMP);
+
+  bool thrown = false;
+  try {
+    parse::parse_action_code("lsidjsjdkfd");
   } catch (const int code) {
     BOOST_CHECK_EQUAL(code, 1);
     thrown = true;

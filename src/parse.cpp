@@ -161,7 +161,7 @@ DimTuple parse::parse_subnet(const std::string& str) {
     throw 1;
   // compute min and max ip of subnet
   if (mask_val == 0)
-    return std::make_tuple(parse::ip_min, parse::ip_max);
+    return std::make_tuple(min_ip, max_ip);
   const dim_t host_len = 32 - mask_val;
   const dim_t min_ip = (ip_val >> host_len) << host_len;
   const dim_t max_ip = min_ip + ((1 << host_len) - 1);
@@ -169,12 +169,25 @@ DimTuple parse::parse_subnet(const std::string& str) {
 }
 
 
-parse::Protocol parse::parse_protocol(const std::string& str) {
-  if (str.compare(0, 3, "tcp") == 0)
-    return parse::TCP;
-  if (str.compare(0, 3, "udp") == 0)
-    return parse::UDP;
-  if (str.compare(0, 4, "icmp") == 0)
-    return parse::ICMP;
+dim_t parse::parse_protocol(const std::string& str) {
+  if (str == "tcp")
+    return TCP;
+  if (str == "udp")
+    return UDP;
+  if (str == "icmp")
+    return ICMP;
+  throw 1;
+}
+
+
+ActionCode parse::parse_action_code(const std::string& str) {
+  if (str == "ACCEPT")
+    return ACCEPT;
+  if (str == "DROP")
+    return DROP;
+  if (str == "REJECT")
+    return REJECT;
+  if (str == "JUMP")
+    return JUMP;
   throw 1;
 }

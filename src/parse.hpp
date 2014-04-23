@@ -6,16 +6,11 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <cstdint>
-#include "rule.hpp"
+#include "partial_ruleset.hpp"
 
 typedef std::vector<std::string> StrVector;
 
 namespace parse {
-  
-  enum Protocol {TCP, UDP, ICMP};
-
-  const dim_t ip_min = 0;
-  const dim_t ip_max = UINT32_MAX;
 
   int split(const std::string& str, const std::string& sep, StrVector& parts);
 
@@ -53,7 +48,14 @@ namespace parse {
    * Returns an identifier for the protocol in case of sucess.
    * Throws 1 in case of failure.
    */
-  Protocol parse_protocol(const std::string& str);
+  dim_t parse_protocol(const std::string& str);
+
+
+  /*
+   * Parses an action string such as ACCEPT, DROP, REJECT, JUMP.
+   * Throws 1 in case of failure.
+   */
+  ActionCode parse_action_code(const std::string& str);
 
 }
 
