@@ -74,9 +74,10 @@ namespace parse {
 
   /*
    * Checks whether the iptables-save rule is applicable to HiTables usage.
+   * Returns a rule object that states whether it is valid or not.
    * Expects the rule to be whitespace-split.
    */
-  bool check_hitables_applicable(const StrVector& parts);
+   Rule check_hitables_applicable(const StrVector& parts);
 
 }
 

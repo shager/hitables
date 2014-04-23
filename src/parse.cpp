@@ -193,24 +193,42 @@ ActionCode parse::parse_action_code(const std::string& str) {
 }
 
 
-bool parse::check_hitables_applicable(const StrVector& parts) {
+Rule parse::check_hitables_applicable(const StrVector& parts) {
   const size_t len = parts.size();
+
+  dim_t min_sport = min_port;
+  dim_t max_sport = max_port;
+
+  dim_t min_dport = min_port;
+  dim_t max_dport = max_port;
+
+  dim_t min_saddr = min_ip;
+  dim_t max_saddr = max_ip;
+
+  dim_t min_daddr = min_ip;
+  dim_t max_daddr = max_ip;
+
+  dim_t min_prot_ = min_prot;
+  dim_t max_prot_ = max_prot;
+
+  Action action(NONE);
+
   for (size_t i = 0; i < len; ++i) {
     const std::string& word = parts[i];
     if (word == "-A") {
       ++i;
       if (parts[i] != "INPUT" && parts[i] != "FORWARD" && parts[i] != "OUTPUT")
-        return false;
+        return Rule();
 
     } else if (word == "-p") {
       ++i;
       if (parts[i] != "tcp" && parts[i] != "udp")
-        return false;
+        return Rule();
 
     } else if (word == "-m") {
       ++i;
       if (parts[i] != "iprange" && parts[i] != "tcp" && parts[i] != "udp")
-        return false;
+        return Rule();
 
     } else if (word == "--src-range" || word == "--dst-range") {
       ++i;
@@ -221,10 +239,18 @@ bool parse::check_hitables_applicable(const StrVector& parts) {
     } else if (word == "-j") {
       ++i;
       if (parts[i] != "ACCEPT" && parts[i] != "DROP" && parts[i] != "REJECT")
-        return false;
+        return Rule();
 
     } else
-      return false;
+      return Rule();
   }
-  return true;
+
+  // assemble rule from data gathered above
+  DimVector dims;
+  dims.push_back(std::make_tuple(min_sport, max_sport));
+  dims.push_back(std::make_tuple(min_dport, max_dport));
+  dims.push_back(std::make_tuple(min_saddr, max_saddr));
+  dims.push_back(std::make_tuple(min_daddr, max_daddr));
+  dims.push_back(std::make_tuple(min_prot_, max_prot_));
+  return Rule(action, dims);
 }
