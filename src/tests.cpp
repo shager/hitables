@@ -592,6 +592,28 @@ BOOST_AUTO_TEST_CASE(parse_parse_action_code) {
 }
 
 
+BOOST_AUTO_TEST_CASE(parse_parse_ip_range) {
+  DimTuple t1(parse::parse_ip_range("0.0.0.1-0.0.0.2"));
+  BOOST_CHECK_EQUAL(get<0>(t1), 1);
+  BOOST_CHECK_EQUAL(get<1>(t1), 2);
+
+  StrVector faults;
+  faults.push_back("asdasdasd");
+  faults.push_back("0.0.0.1-");
+  faults.push_back("-0.0.0.1");
+  bool thrown;
+  for (size_t i = 0; i < faults.size(); ++i) {
+    try {
+      parse::parse_ip_range(faults[i]);
+    } catch (const int code) {
+      thrown = true;
+      BOOST_CHECK_EQUAL(code, 1);
+    }
+    BOOST_CHECK(thrown);
+  }
+}
+
+
 BOOST_AUTO_TEST_CASE(parse_check_hitables_applicable) {
   StrVector parts;
   parse::split("-A INPUT -p udp -j ACCEPT", " ", parts);
@@ -599,7 +621,7 @@ BOOST_AUTO_TEST_CASE(parse_check_hitables_applicable) {
   parts.clear();
 
   parse::split("-A INPUT -p icmp -j ACCEPT", " ", parts);
-  BOOST_CHECK(!parse::check_hitables_applicable(parts).applicable());
+  BOOST_CHECK(parse::check_hitables_applicable(parts).applicable());
   parts.clear();
 
   parse::split("-A adasdas -p udp -j ACCEPT", " ", parts);
@@ -621,4 +643,27 @@ BOOST_AUTO_TEST_CASE(parse_check_hitables_applicable) {
   parse::split("-A INPUT -p udp -m iprange --src-range 117.159.160.68-117.159.164.152 --dst-range 253.59.172.172-253.59.175.252 -m udp --sport 38435:39668 --dport 14309:14373 -j ACCEPT", " ", parts);
   BOOST_CHECK(parse::check_hitables_applicable(parts).applicable());
   parts.clear();
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_check_hitables_applicable_values) {
+  StrVector parts;
+  parse::split("-A INPUT -p udp -m iprange --src-range 0.0.0.5-0.0.0.6 --dst-range 0.0.0.7-0.0.0.8 -m udp --sport 1:2 --dport 3:4 -j ACCEPT", " ", parts);
+  Rule rule(parse::check_hitables_applicable(parts));
+  parts.clear();
+  BOOST_CHECK(rule.applicable());
+  BOOST_CHECK(rule.action().code() == ACCEPT);
+  // check rule size
+  const DimVector& bounds = rule.box().box_bounds();
+  BOOST_CHECK_EQUAL(bounds.size(), 5);
+  BOOST_CHECK(get<0>(bounds[0]) == 1);
+  BOOST_CHECK(get<1>(bounds[0]) == 2);
+  BOOST_CHECK(get<0>(bounds[1]) == 3);
+  BOOST_CHECK(get<1>(bounds[1]) == 4);
+  BOOST_CHECK(get<0>(bounds[2]) == 5);
+  BOOST_CHECK(get<1>(bounds[2]) == 6);
+  BOOST_CHECK(get<0>(bounds[3]) == 7);
+  BOOST_CHECK(get<1>(bounds[3]) == 8);
+  BOOST_CHECK(get<0>(bounds[4]) == UDP);
+  BOOST_CHECK(get<1>(bounds[4]) == UDP);
 }

@@ -57,6 +57,13 @@ namespace parse {
    * Throws 1 in case of failure.
    */
   DimTuple parse_subnet(const std::string& str);
+  
+  /*
+   * Parses an IP range of the form <IP>-<IP>.
+   * Returns a DimTuple in case of success.
+   * Throws 1 in case of failure.
+   */
+  DimTuple parse_ip_range(const std::string& str);
 
   /*
    * Parses a protocol string.

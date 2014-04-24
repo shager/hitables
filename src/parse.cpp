@@ -169,6 +169,17 @@ DimTuple parse::parse_subnet(const std::string& str) {
 }
 
 
+DimTuple parse::parse_ip_range(const std::string& str) {
+  StrVector parts;
+  parse::split(str, "-", parts);
+  if (parts.size() != 2)
+    throw 1;
+  const dim_t start_ip(parse::parse_ip(parts[0])); 
+  const dim_t end_ip(parse::parse_ip(parts[1]));
+  return std::make_tuple(start_ip, end_ip);
+}
+
+
 dim_t parse::parse_protocol(const std::string& str) {
   if (str == "tcp")
     return TCP;
@@ -195,22 +206,16 @@ ActionCode parse::parse_action_code(const std::string& str) {
 
 Rule parse::check_hitables_applicable(const StrVector& parts) {
   const size_t len = parts.size();
-
   dim_t min_sport = min_port;
   dim_t max_sport = max_port;
-
   dim_t min_dport = min_port;
   dim_t max_dport = max_port;
-
   dim_t min_saddr = min_ip;
   dim_t max_saddr = max_ip;
-
   dim_t min_daddr = min_ip;
   dim_t max_daddr = max_ip;
-
   dim_t min_prot_ = min_prot;
   dim_t max_prot_ = max_prot;
-
   Action action(NONE);
 
   for (size_t i = 0; i < len; ++i) {
@@ -222,8 +227,13 @@ Rule parse::check_hitables_applicable(const StrVector& parts) {
 
     } else if (word == "-p") {
       ++i;
-      if (parts[i] != "tcp" && parts[i] != "udp")
+      try {
+        const dim_t prot(parse::parse_protocol(parts[i]));
+        min_prot_ = prot;
+        max_prot_ = prot;
+      } catch (const int code) {
         return Rule();
+      }
 
     } else if (word == "-m") {
       ++i;
@@ -231,20 +241,45 @@ Rule parse::check_hitables_applicable(const StrVector& parts) {
         return Rule();
 
     } else if (word == "--src-range" || word == "--dst-range") {
+      const bool is_src = word[2] == 's';
+      dim_t* min = is_src ? &min_saddr : &min_daddr;
+      dim_t* max = is_src ? &max_saddr : &max_daddr;
       ++i;
+      const DimTuple src_tuple(parse::parse_ip_range(parts[i]));
+      *min = std::get<0>(src_tuple);
+      *max = std::get<1>(src_tuple);
 
     } else if (word == "--sport" || word == "--dport") {
+      const bool is_sport = word[2] == 's';
+      dim_t* min = is_sport ? &min_sport : &min_dport;
+      dim_t* max = is_sport ? &max_sport : &max_dport;
       ++i;
+      if (parts[i].find(":") != std::string::npos) {
+        const DimTuple ports(parse::parse_port_range(parts[i]));
+        *min = std::get<0>(ports);
+        *max = std::get<1>(ports);
+      } else {
+        const dim_t port(parse::parse_port(parts[i]));
+        *min = *max = port;
+      }
 
     } else if (word == "-j") {
       ++i;
-      if (parts[i] != "ACCEPT" && parts[i] != "DROP" && parts[i] != "REJECT")
+      ActionCode code;
+      try {
+        code = parse::parse_action_code(parts[i]);
+      } catch (const int err_code) {
         return Rule();
+      }
+      if (code == JUMP) {
+        ++i;
+        action = Action(code, parts[i]);
+      } else
+        action = Action(code);
 
     } else
       return Rule();
   }
-
   // assemble rule from data gathered above
   DimVector dims;
   dims.push_back(std::make_tuple(min_sport, max_sport));
