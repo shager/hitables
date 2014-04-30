@@ -442,8 +442,8 @@ BOOST_AUTO_TEST_CASE(parse_parse_ip) {
     bool thrown = false;
     try {
       parse::parse_ip(faults[i]);
-    } catch (const int code) {
-      BOOST_CHECK_EQUAL(code, 1);
+    } catch (const string& msg) {
+      BOOST_CHECK(msg == "Invalid subnet: '" + faults[i] + "'");
       thrown = true;
     }
     BOOST_CHECK(thrown);
@@ -474,8 +474,8 @@ BOOST_AUTO_TEST_CASE(parse_parse_port) {
     bool thrown = false;
     try {
       parse::parse_port(faults[i]);
-    } catch (const int code) {
-      BOOST_CHECK_EQUAL(code, 1);
+    } catch (const std::string& msg) {
+      BOOST_CHECK(msg == ("Invalid port: '" + faults[i] + "'"));
       thrown = true;
     }
     BOOST_CHECK(thrown);
@@ -504,8 +504,8 @@ BOOST_AUTO_TEST_CASE(parse_parse_port_range) {
     bool thrown = false;
     try {
       parse::parse_port_range(faults[i]);
-    } catch (const int code) {
-      BOOST_CHECK_EQUAL(code, 1);
+    } catch (const std::string& msg) {
+      BOOST_CHECK(msg.find("Invalid port") == 0);
       thrown = true;
     }
     BOOST_CHECK(thrown);
@@ -550,8 +550,7 @@ BOOST_AUTO_TEST_CASE(parse_parse_subnet) {
     bool thrown = false;
     try {
       parse::parse_subnet(faults[i]);
-    } catch (const int code) {
-      BOOST_CHECK_EQUAL(code, 1);
+    } catch (const std::string& msg) {
       thrown = true;
     }
     BOOST_CHECK(thrown);
@@ -566,9 +565,9 @@ BOOST_AUTO_TEST_CASE(parse_parse_protocol) {
 
   bool thrown = false;
   try {
-    parse::parse_subnet("asdassdad");
-  } catch (const int code) {
-    BOOST_CHECK_EQUAL(code, 1);
+    parse::parse_protocol("xxx");
+  } catch (const std::string& msg) {
+    BOOST_CHECK(msg == "Invalid protocol: 'xxx'");
     thrown = true;
   }
   BOOST_CHECK(thrown);
@@ -583,9 +582,9 @@ BOOST_AUTO_TEST_CASE(parse_parse_action_code) {
 
   bool thrown = false;
   try {
-    parse::parse_action_code("lsidjsjdkfd");
-  } catch (const int code) {
-    BOOST_CHECK_EQUAL(code, 1);
+    parse::parse_action_code("xxx");
+  } catch (const std::string& msg) {
+    BOOST_CHECK(msg ==  "Invalid action code: 'xxx'");
     thrown = true;
   }
   BOOST_CHECK(thrown);
@@ -605,9 +604,8 @@ BOOST_AUTO_TEST_CASE(parse_parse_ip_range) {
   for (size_t i = 0; i < faults.size(); ++i) {
     try {
       parse::parse_ip_range(faults[i]);
-    } catch (const int code) {
+    } catch (const string& msg) {
       thrown = true;
-      BOOST_CHECK_EQUAL(code, 1);
     }
     BOOST_CHECK(thrown);
   }
@@ -628,16 +626,28 @@ BOOST_AUTO_TEST_CASE(parse_parse_rule) {
   BOOST_CHECK(!parse::parse_rule(parts).applicable());
   parts.clear();
 
+  bool thrown = false;
   parse::split("-A INPUT -p asdasd -j ACCEPT", " ", parts);
-  BOOST_CHECK(!parse::parse_rule(parts).applicable());
+  try {
+    BOOST_CHECK(!parse::parse_rule(parts).applicable());
+  } catch (const string& msg) {
+    thrown = true;
+  }
+  BOOST_CHECK(thrown);
   parts.clear();
 
   parse::split("-A INPUT -blabla -j ACCEPT", " ", parts);
   BOOST_CHECK(!parse::parse_rule(parts).applicable());
   parts.clear();
 
+  thrown = false;
   parse::split("-A INPUT -p tcp -j asdjasdkj", " ", parts);
-  BOOST_CHECK(!parse::parse_rule(parts).applicable());
+  try {
+    BOOST_CHECK(!parse::parse_rule(parts).applicable());
+  } catch (const string& msg) {
+    thrown = true;
+  }
+  BOOST_CHECK(thrown);
   parts.clear();
 
   parse::split("-A INPUT -p udp -m iprange --src-range 117.159.160.68-117.159.164.152 --dst-range 253.59.172.172-253.59.175.252 -m udp --sport 38435:39668 --dport 14309:14373 -j ACCEPT", " ", parts);

@@ -88,21 +88,21 @@ uint32_t parse::parse_ip(const std::string& str) {
   parse::split(str, ".", parts);
   const size_t num_parts = parts.size();
   if (num_parts > 4)
-    throw 1;
+    throw "Invalid subnet: '" + str + "'";
   uint32_t ip_val = 0;
   uint32_t shift = 24;
   for (size_t i = 0; i < num_parts; ++i) {
     const std::string& octet = parts[i];
     const size_t octet_len = octet.size();
     if (octet_len == 0 || octet_len > 3)
-      throw 1;
+      throw "Invalid subnet: '" + str + "'";
     for (size_t j = 0; j < octet_len; ++j)
       if (!is_num(octet[j]))
-        throw 1;
+        throw "Invalid subnet: '" + str + "'";
     int octet_val;
     sscanf(octet.c_str(), "%d", &octet_val);
     if (octet_val < 0 || octet_val > 255)
-      throw 1;
+      throw "Invalid subnet: '" + str + "'";
     ip_val |= (octet_val << shift);
     shift -= 8;
   }
@@ -113,14 +113,14 @@ uint32_t parse::parse_ip(const std::string& str) {
 uint32_t parse::parse_port(const std::string& port) {
   const size_t len = port.size();
   if (len > 5 || len == 0)
-    throw 1;
+    throw "Invalid port: '" + port + "'";
   for (size_t i = 0; i < len; ++i)
     if (!is_num(port[i]))
-      throw 1;
+      throw "Invalid port: '" + port + "'";
   int port_num;
   sscanf(port.c_str(), "%d", &port_num);
   if (port_num > 65535)
-    throw 1;
+    throw "Invalid port: '" + port + "'";
   return static_cast<uint32_t>(port_num);
 }
 
@@ -129,7 +129,7 @@ DimTuple parse::parse_port_range(const std::string& str) {
   StrVector parts;
   parse::split(str, ":", parts);
   if (parts.size() != 2)
-    throw 1;
+    throw "Invalid port range: '" + str + "'";
   const uint32_t port1 = parse::parse_port(parts[0]);
   const uint32_t port2 = parse::parse_port(parts[1]);
   return std::make_tuple(port1, port2);
@@ -144,21 +144,21 @@ DimTuple parse::parse_subnet(const std::string& str) {
     const dim_t ip_val = parse::parse_ip(parts[0]);
     return std::make_tuple(ip_val, ip_val);
   } else if (num_parts > 2)
-    throw 1;
+    throw "Invalid subnet: '" + str + "'";
   // we have a real subnet
   const dim_t ip_val = parse::parse_ip(parts[0]);
   // check mask
   const std::string& mask_str = parts[1];
   const size_t mask_len = mask_str.size();
   if (mask_len == 0 || mask_len > 2)
-    throw 1;
+    throw "Invalid subnet: '" + str + "'";
   for (size_t i = 0; i < mask_len; ++i)
     if (!is_num(mask_str[i]))
-      throw 1;
+      throw "Invalid subnet: '" + str + "'";
   int mask_val;
   sscanf(mask_str.c_str(), "%d", &mask_val);
   if (mask_val > 32)
-    throw 1;
+    throw "Invalid subnet: '" + str + "'";
   // compute min and max ip of subnet
   if (mask_val == 0)
     return std::make_tuple(min_ip, max_ip);
@@ -173,7 +173,7 @@ DimTuple parse::parse_ip_range(const std::string& str) {
   StrVector parts;
   parse::split(str, "-", parts);
   if (parts.size() != 2)
-    throw 1;
+    throw "Invalid IP range: '" + str + "'";
   const dim_t start_ip(parse::parse_ip(parts[0])); 
   const dim_t end_ip(parse::parse_ip(parts[1]));
   return std::make_tuple(start_ip, end_ip);
@@ -187,7 +187,7 @@ dim_t parse::parse_protocol(const std::string& str) {
     return UDP;
   if (str == "icmp")
     return ICMP;
-  throw 1;
+  throw "Invalid protocol: '" + str + "'";
 }
 
 
@@ -200,7 +200,7 @@ ActionCode parse::parse_action_code(const std::string& str) {
     return REJECT;
   if (str == "JUMP")
     return JUMP;
-  throw 1;
+  throw "Invalid action code: '" + str + "'";
 }
 
 
