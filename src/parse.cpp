@@ -204,6 +204,13 @@ ActionCode parse::parse_action_code(const std::string& str) {
 }
 
 
+inline void check_index(const size_t i, const size_t len,
+    const std::string& msg) {
+  if (i >= len)
+    throw msg;
+}
+
+
 Rule parse::parse_rule(const StrVector& parts) {
   const size_t len = parts.size();
   dim_t min_sport = min_port;
@@ -227,6 +234,7 @@ Rule parse::parse_rule(const StrVector& parts) {
 
     } else if (word == "-p") {
       ++i;
+      check_index(i, len, "Invalid protocol specification");
       try {
         const dim_t prot(parse::parse_protocol(parts[i]));
         min_prot_ = prot;
@@ -237,11 +245,13 @@ Rule parse::parse_rule(const StrVector& parts) {
 
     } else if (word == "-m") {
       ++i;
+      check_index(i, len, "Invalid match specification");
       if (parts[i] != "iprange" && parts[i] != "tcp" && parts[i] != "udp")
         return Rule();
 
     } else if (word == "--src" || word == "--dst") {
       ++i;
+      check_index(i, len, "Invalid --src or --dst specification");
       const bool is_src = word[2] == 's';
       dim_t* min = is_src ? &min_saddr : &min_daddr;
       dim_t* max = is_src ? &max_saddr : &max_daddr;
@@ -250,19 +260,21 @@ Rule parse::parse_rule(const StrVector& parts) {
       *max = std::get<1>(net_tuple);
 
     } else if (word == "--src-range" || word == "--dst-range") {
+      ++i;
+      check_index(i, len, "Invalid --src-range or --dst-range specification");
       const bool is_src = word[2] == 's';
       dim_t* min = is_src ? &min_saddr : &min_daddr;
       dim_t* max = is_src ? &max_saddr : &max_daddr;
-      ++i;
       const DimTuple src_tuple(parse::parse_ip_range(parts[i]));
       *min = std::get<0>(src_tuple);
       *max = std::get<1>(src_tuple);
 
     } else if (word == "--sport" || word == "--dport") {
+      ++i;
+      check_index(i, len, "Invalid --sport or --dport specification");
       const bool is_sport = word[2] == 's';
       dim_t* min = is_sport ? &min_sport : &min_dport;
       dim_t* max = is_sport ? &max_sport : &max_dport;
-      ++i;
       if (parts[i].find(":") != std::string::npos) {
         const DimTuple ports(parse::parse_port_range(parts[i]));
         *min = std::get<0>(ports);
@@ -274,6 +286,7 @@ Rule parse::parse_rule(const StrVector& parts) {
 
     } else if (word == "-j") {
       ++i;
+      check_index(i, len, "Invalid jump (-j) specification");
       ActionCode code;
       try {
         code = parse::parse_action_code(parts[i]);
@@ -282,6 +295,7 @@ Rule parse::parse_rule(const StrVector& parts) {
       }
       if (code == JUMP) {
         ++i;
+        check_index(i, len, "Invalid jump (-j) specification");
         action = Action(code, parts[i]);
       } else
         action = Action(code);
