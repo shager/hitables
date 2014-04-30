@@ -84,7 +84,12 @@ namespace parse {
    * Returns a rule object that states whether it is valid or not.
    * Expects the rule to be whitespace-split.
    */
-   Rule parse_rule(const StrVector& parts);
+  Rule parse_rule(const StrVector& parts);
+
+  /*
+   * Parses the given input string into a vector of rule objects.
+   */
+  void parse_rules(const StrVector& input, RuleVector& rules);
 
 }
 

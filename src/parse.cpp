@@ -298,3 +298,13 @@ Rule parse::parse_rule(const StrVector& parts) {
   dims.push_back(std::make_tuple(min_prot_, max_prot_));
   return Rule(action, dims);
 }
+
+
+void parse::parse_rules(const StrVector& input, RuleVector& rules) {
+  const size_t num_rules = input.size();
+  for (size_t i = 0; i < num_rules; ++i) {
+    StrVector parts;
+    parse::split(input[i], " ", parts);
+    rules.push_back(parse::parse_rule(parts));
+  }
+}

@@ -690,3 +690,15 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules_prefixes) {
   BOOST_CHECK(get<0>(bounds[4]) == min_prot);
   BOOST_CHECK(get<1>(bounds[4]) == max_prot);
 }
+
+
+BOOST_AUTO_TEST_CASE(parse_parse_rules) {
+  const size_t n = 10;
+  StrVector input;
+  const std::string rule("-A INPUT --src 0.0.0.5/32 --dst 0.0.0.3/31 -j DROP");
+  for (size_t i = 0; i < n; ++i)
+    input.push_back(rule);
+  RuleVector rules;
+  parse::parse_rules(input, rules);
+  BOOST_CHECK_EQUAL(rules.size(), 10);
+}
