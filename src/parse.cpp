@@ -204,7 +204,7 @@ ActionCode parse::parse_action_code(const std::string& str) {
 }
 
 
-Rule parse::check_hitables_applicable(const StrVector& parts) {
+Rule parse::parse_rule(const StrVector& parts) {
   const size_t len = parts.size();
   dim_t min_sport = min_port;
   dim_t max_sport = max_port;
@@ -239,6 +239,15 @@ Rule parse::check_hitables_applicable(const StrVector& parts) {
       ++i;
       if (parts[i] != "iprange" && parts[i] != "tcp" && parts[i] != "udp")
         return Rule();
+
+    } else if (word == "--src" || word == "--dst") {
+      ++i;
+      const bool is_src = word[2] == 's';
+      dim_t* min = is_src ? &min_saddr : &min_daddr;
+      dim_t* max = is_src ? &max_saddr : &max_daddr;
+      const DimTuple net_tuple(parse::parse_subnet(parts[i]));
+      *min = std::get<0>(net_tuple);
+      *max = std::get<1>(net_tuple);
 
     } else if (word == "--src-range" || word == "--dst-range") {
       const bool is_src = word[2] == 's';

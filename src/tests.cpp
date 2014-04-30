@@ -614,42 +614,42 @@ BOOST_AUTO_TEST_CASE(parse_parse_ip_range) {
 }
 
 
-BOOST_AUTO_TEST_CASE(parse_check_hitables_applicable) {
+BOOST_AUTO_TEST_CASE(parse_parse_rule) {
   StrVector parts;
   parse::split("-A INPUT -p udp -j ACCEPT", " ", parts);
-  BOOST_CHECK(parse::check_hitables_applicable(parts).applicable());
+  BOOST_CHECK(parse::parse_rule(parts).applicable());
   parts.clear();
 
   parse::split("-A INPUT -p icmp -j ACCEPT", " ", parts);
-  BOOST_CHECK(parse::check_hitables_applicable(parts).applicable());
+  BOOST_CHECK(parse::parse_rule(parts).applicable());
   parts.clear();
 
   parse::split("-A adasdas -p udp -j ACCEPT", " ", parts);
-  BOOST_CHECK(!parse::check_hitables_applicable(parts).applicable());
+  BOOST_CHECK(!parse::parse_rule(parts).applicable());
   parts.clear();
 
   parse::split("-A INPUT -p asdasd -j ACCEPT", " ", parts);
-  BOOST_CHECK(!parse::check_hitables_applicable(parts).applicable());
+  BOOST_CHECK(!parse::parse_rule(parts).applicable());
   parts.clear();
 
   parse::split("-A INPUT -blabla -j ACCEPT", " ", parts);
-  BOOST_CHECK(!parse::check_hitables_applicable(parts).applicable());
+  BOOST_CHECK(!parse::parse_rule(parts).applicable());
   parts.clear();
 
   parse::split("-A INPUT -p tcp -j asdjasdkj", " ", parts);
-  BOOST_CHECK(!parse::check_hitables_applicable(parts).applicable());
+  BOOST_CHECK(!parse::parse_rule(parts).applicable());
   parts.clear();
 
   parse::split("-A INPUT -p udp -m iprange --src-range 117.159.160.68-117.159.164.152 --dst-range 253.59.172.172-253.59.175.252 -m udp --sport 38435:39668 --dport 14309:14373 -j ACCEPT", " ", parts);
-  BOOST_CHECK(parse::check_hitables_applicable(parts).applicable());
+  BOOST_CHECK(parse::parse_rule(parts).applicable());
   parts.clear();
 }
 
 
-BOOST_AUTO_TEST_CASE(parse_check_hitables_applicable_values) {
+BOOST_AUTO_TEST_CASE(parse_parse_rules_values) {
   StrVector parts;
   parse::split("-A INPUT -p udp -m iprange --src-range 0.0.0.5-0.0.0.6 --dst-range 0.0.0.7-0.0.0.8 -m udp --sport 1:2 --dport 3:4 -j ACCEPT", " ", parts);
-  Rule rule(parse::check_hitables_applicable(parts));
+  Rule rule(parse::parse_rule(parts));
   parts.clear();
   BOOST_CHECK(rule.applicable());
   BOOST_CHECK(rule.action().code() == ACCEPT);
@@ -666,4 +666,27 @@ BOOST_AUTO_TEST_CASE(parse_check_hitables_applicable_values) {
   BOOST_CHECK(get<1>(bounds[3]) == 8);
   BOOST_CHECK(get<0>(bounds[4]) == UDP);
   BOOST_CHECK(get<1>(bounds[4]) == UDP);
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_parse_rules_prefixes) {
+  StrVector parts;
+  parse::split("-A INPUT --src 0.0.0.5/32 --dst 0.0.0.3/31 -j DROP", " ", parts);
+  Rule rule(parse::parse_rule(parts));
+  parts.clear();
+  BOOST_CHECK(rule.applicable());
+  BOOST_CHECK(rule.action().code() == DROP);
+  // check rule size
+  const DimVector& bounds = rule.box().box_bounds();
+  BOOST_CHECK_EQUAL(bounds.size(), 5);
+  BOOST_CHECK(get<0>(bounds[0]) == min_port);
+  BOOST_CHECK(get<1>(bounds[0]) == max_port);
+  BOOST_CHECK(get<0>(bounds[1]) == min_port);
+  BOOST_CHECK(get<1>(bounds[1]) == max_port);
+  BOOST_CHECK(get<0>(bounds[2]) == 5);
+  BOOST_CHECK(get<1>(bounds[2]) == 5);
+  BOOST_CHECK(get<0>(bounds[3]) == 2);
+  BOOST_CHECK(get<1>(bounds[3]) == 3);
+  BOOST_CHECK(get<0>(bounds[4]) == min_prot);
+  BOOST_CHECK(get<1>(bounds[4]) == max_prot);
 }
