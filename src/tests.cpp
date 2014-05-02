@@ -794,3 +794,47 @@ BOOST_AUTO_TEST_CASE(arg_parse_spfac) {
     BOOST_CHECK(thrown);
   }
 }
+
+
+BOOST_AUTO_TEST_CASE(arg_parse_dim_choice) {
+  Arguments args;
+  BOOST_CHECK_EQUAL(args.dim_choice(), Arguments::DIM_CHOICE_MAX_DISTINCT);
+  args.parse_dim_choice("least_max");
+  BOOST_CHECK_EQUAL(args.dim_choice(), Arguments::DIM_CHOICE_LEAST_MAX_RULES);
+  args.parse_dim_choice("max_dist");
+  BOOST_CHECK_EQUAL(args.dim_choice(), Arguments::DIM_CHOICE_MAX_DISTINCT);
+  
+  bool thrown = false;
+  try {
+    args.parse_dim_choice("xxx");
+  } catch (const string& msg) {
+    stringstream ss;
+    ss << "Invalid parameter --dim-choice ('xxx'):";
+    ss << " must be 'max_dist' or 'least_max'!";
+    BOOST_CHECK(msg == ss.str());
+    thrown = true;
+  }
+  BOOST_CHECK(thrown);
+}
+
+
+BOOST_AUTO_TEST_CASE(arg_parse_search) {
+  Arguments args;
+  BOOST_CHECK_EQUAL(args.search(), Arguments::SEARCH_LINEAR);
+  args.parse_search("binary");
+  BOOST_CHECK_EQUAL(args.search(), Arguments::SEARCH_BINARY);
+  args.parse_search("linear");
+  BOOST_CHECK_EQUAL(args.search(), Arguments::SEARCH_LINEAR);
+  
+  bool thrown = false;
+  try {
+    args.parse_search("xxx");
+  } catch (const string& msg) {
+    stringstream ss;
+    ss << "Invalid parameter --search ('xxx'):";
+    ss << " must be 'linear' or 'binary'!";
+    BOOST_CHECK(msg == ss.str());
+    thrown = true;
+  }
+  BOOST_CHECK(thrown);
+}

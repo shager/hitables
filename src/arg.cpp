@@ -1,5 +1,11 @@
 #include "arg.hpp"
 
+const size_t Arguments::DIM_CHOICE_MAX_DISTINCT = 0;
+const size_t Arguments::DIM_CHOICE_LEAST_MAX_RULES = 1;
+
+const size_t Arguments::SEARCH_LINEAR = 2;
+const size_t Arguments::SEARCH_BINARY = 3;
+
 inline bool is_digit(const char c) {
   return c >= 48 && c <= 57;
 }
@@ -42,12 +48,29 @@ size_t Arguments::parse_int_param(const std::string& input,
 }
 
 
-void Arguments::parse_binth(const std::string& input) {
-  binth_ = parse_int_param(input, "--binth", Arguments::MIN_BINTH,
-      Arguments::MAX_BINTH);
+void Arguments::parse_dim_choice(const std::string& input) {
+  if (input == "max_dist")
+    dim_choice_ = Arguments::DIM_CHOICE_MAX_DISTINCT;
+  else if (input == "least_max")
+    dim_choice_ = Arguments::DIM_CHOICE_LEAST_MAX_RULES;
+  else {
+    std::stringstream ss;
+    ss << "Invalid parameter --dim-choice ('" << input
+        << "'): must be 'max_dist' or 'least_max'!";
+    throw ss.str();
+  }
 }
 
-void Arguments::parse_spfac(const std::string& input) {
-  spfac_ = parse_int_param(input, "--spfac", Arguments::MIN_SPFAC,
-      Arguments::MAX_SPFAC);
+
+void Arguments::parse_search(const std::string& input) {
+  if (input == "linear")
+    search_ = Arguments::SEARCH_LINEAR;
+  else if (input == "binary")
+    search_ = Arguments::SEARCH_BINARY;
+  else {
+    std::stringstream ss;
+    ss << "Invalid parameter --search ('" << input
+        << "'): must be 'linear' or 'binary'!";
+    throw ss.str();
+  }
 }
