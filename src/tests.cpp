@@ -1,6 +1,7 @@
 #include "box.hpp"
 #include "treenode.hpp"
 #include "parse.hpp"
+#include "arg.hpp"
 #include <cstdio>
 
 #define BOOST_TEST_DYN_LINK
@@ -711,4 +712,85 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules) {
   RuleVector rules;
   parse::parse_rules(input, rules);
   BOOST_CHECK_EQUAL(rules.size(), 10);
+}
+
+/*****************************************************************************
+ *                            A R G   T E S T S                              *
+ *****************************************************************************/
+
+BOOST_AUTO_TEST_CASE(arg_parse_binth) {
+  Arguments args;
+  BOOST_CHECK_EQUAL(args.binth(), 0);
+
+  StrVector correct;
+  correct.push_back("17");
+  correct.push_back("000000000000000001");
+  correct.push_back("65536");
+  correct.push_back("00000065536");
+  correct.push_back("1");
+  for (size_t i = 0; i < correct.size(); ++i) {
+    stringstream ss(correct[i]);
+    size_t expected;
+    ss >> expected;
+    args.parse_binth(correct[i]);
+    BOOST_CHECK_EQUAL(args.binth(), expected);
+  }
+
+  StrVector fails;
+  fails.push_back("adsad");
+  fails.push_back("100000000");
+  fails.push_back("00000");
+  fails.push_back("0");
+  for (size_t i = 0; i < fails.size(); ++i) {
+    bool thrown = false;
+    try {
+      args.parse_binth(fails[i]);
+    } catch (const string& msg) {
+      stringstream ss;
+      ss << "Invalid parameter --binth ('" << fails[i] << "'): "
+          << "must be an integer between 1 and 65536!";
+      BOOST_CHECK(msg == ss.str());
+      thrown = true;
+    }
+    BOOST_CHECK(thrown);
+  }
+}
+
+
+BOOST_AUTO_TEST_CASE(arg_parse_spfac) {
+  Arguments args;
+  BOOST_CHECK_EQUAL(args.spfac(), 0);
+
+  StrVector correct;
+  correct.push_back("17");
+  correct.push_back("000000000000000001");
+  correct.push_back("65536");
+  correct.push_back("00000065536");
+  correct.push_back("1");
+  for (size_t i = 0; i < correct.size(); ++i) {
+    stringstream ss(correct[i]);
+    size_t expected;
+    ss >> expected;
+    args.parse_spfac(correct[i]);
+    BOOST_CHECK_EQUAL(args.spfac(), expected);
+  }
+
+  StrVector fails;
+  fails.push_back("adsad");
+  fails.push_back("100000000");
+  fails.push_back("00000");
+  fails.push_back("0");
+  for (size_t i = 0; i < fails.size(); ++i) {
+    bool thrown = false;
+    try {
+      args.parse_spfac(fails[i]);
+    } catch (const string& msg) {
+      stringstream ss;
+      ss << "Invalid parameter --spfac ('" << fails[i] << "'): "
+          << "must be an integer between 1 and 65536!";
+      BOOST_CHECK(msg == ss.str());
+      thrown = true;
+    }
+    BOOST_CHECK(thrown);
+  }
 }
