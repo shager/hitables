@@ -838,3 +838,33 @@ BOOST_AUTO_TEST_CASE(arg_parse_search) {
   }
   BOOST_CHECK(thrown);
 }
+
+
+BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
+  StrVector vector;
+  vector.push_back("--binth");
+  vector.push_back("5");
+  vector.push_back("--search");
+  vector.push_back("binary");
+  vector.push_back("--spfac");
+  vector.push_back("20");
+  vector.push_back("--dim-choice");
+  vector.push_back("least_max");
+  vector.push_back("FILENAME");
+
+  Arguments a1(Arguments::parse_arg_vector(vector));
+  BOOST_CHECK_EQUAL(a1.binth(), 5);
+  BOOST_CHECK_EQUAL(a1.spfac(), 20);
+  BOOST_CHECK_EQUAL(a1.search(), Arguments::SEARCH_BINARY);
+  BOOST_CHECK_EQUAL(a1.dim_choice(), Arguments::DIM_CHOICE_LEAST_MAX_RULES);
+  BOOST_CHECK(a1.infile() == "FILENAME");
+
+  vector.clear();
+  bool thrown = false;
+  try {
+    Arguments a2(Arguments::parse_arg_vector(vector));
+  } catch (const string& msg) {
+    thrown = true;
+  }
+  BOOST_CHECK(thrown);
+}
