@@ -2,6 +2,9 @@ CC=g++
 CFLAGS=-Wall -Werror -pedantic-errors -std=c++0x -O0
 TFLAGS=$(CFLAGS) -lboost_unit_test_framework
 
+tests: tests.cpp box.o action.o parse.o treenode.o
+	$(CC) -o tests tests.cpp box.o action.o parse.o treenode.o $(TFLAGS)
+
 box.o: box.cpp box.hpp
 	$(CC) -c box.cpp $(CFLAGS)
 
@@ -13,9 +16,6 @@ parse.o: parse.cpp parse.hpp rule.hpp partial_ruleset.hpp
 
 treenode.o: treenode.cpp treenode.hpp
 	$(CC) -c treenode.cpp $(CFLAGS)
-
-tests: tests.cpp box.o action.o parse.o treenode.o
-	$(CC) -o tests tests.cpp box.o action.o parse.o treenode.o $(TFLAGS)
 
 clean:
 	rm -f box.o
