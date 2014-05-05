@@ -906,3 +906,16 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector_usage) {
   }
   BOOST_CHECK(thrown);
 }
+
+
+BOOST_AUTO_TEST_CASE(arg_parse_arg_vector_verbose) {
+  StrVector v;
+  v.push_back("--verbose");
+  v.push_back("blabla");
+  Arguments args(Arguments::parse_arg_vector(v));
+  BOOST_CHECK(args.verbose());
+
+  v.erase(v.begin() + 1);
+  args = Arguments::parse_arg_vector(v);
+  BOOST_CHECK(!args.verbose());
+}

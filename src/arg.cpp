@@ -116,6 +116,9 @@ Arguments Arguments::parse_arg_vector(const StrVector& arg_vector) {
     } else if (arg == "--usage") {
       throw std::string("usage");
 
+    } else if (arg == "--verbose") {
+      args.set_verbose(true);
+
     } else {
       std::stringstream ss;
       ss << "Unknown argument '" << arg << "'!";
