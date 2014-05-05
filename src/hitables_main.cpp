@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
   StrVector input;
   if (parse::file_read_lines(args.infile(), input) == 1) {
     std::stringstream ss;
-    ss << "file '" << args.infile() << "' is not accessible!";
+    ss << "File '" << args.infile() << "' is not accessible!";
     print_error(ss.str());
     return EXIT_FAILURE;
   }
