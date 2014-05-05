@@ -874,3 +874,18 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
   }
   BOOST_CHECK(thrown);
 }
+
+
+BOOST_AUTO_TEST_CASE(arg_parse_arg_vector_usage) {
+  StrVector v;
+  v.push_back("--usage");
+  v.push_back("blabla");
+  bool thrown = false;
+  try {
+    Arguments::parse_arg_vector(v);
+  } catch (const string& msg) {
+    BOOST_CHECK(msg == "usage");
+    thrown = true;
+  }
+  BOOST_CHECK(thrown);
+}

@@ -2,7 +2,7 @@ CC=g++
 CFLAGS=-Wall -Werror -pedantic-errors -std=c++0x -O0
 TFLAGS=$(CFLAGS) -lboost_unit_test_framework
 
-hitables: hitables_main.cpp box.o action.o parse.o treenode.o
+hitables: hitables_main.cpp box.o action.o parse.o treenode.o arg.o
 	$(CC) -o hitables hitables_main.cpp box.o action.o parse.o treenode.o arg.o $(CFLAGS)
 
 tests: tests.cpp box.o action.o parse.o treenode.o arg.o

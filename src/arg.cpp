@@ -87,6 +87,8 @@ Arguments Arguments::parse_arg_vector(const StrVector& arg_vector) {
   if (num_args == 0) 
     throw std::string(
         "Too few arguments, at least an input file must be specified!");
+  if (num_args == 1 && arg_vector[0] == "--usage")
+    throw std::string("usage");
   const size_t num_non_file_args = num_args - 1;
   Arguments args;
   for (size_t i = 0; i < num_non_file_args; ++i) {
@@ -110,6 +112,9 @@ Arguments Arguments::parse_arg_vector(const StrVector& arg_vector) {
       ++i;
       check_arg_index(i, num_non_file_args);
       args.parse_dim_choice(arg_vector[i]);
+
+    } else if (arg == "--usage") {
+      throw std::string("usage");
 
     } else {
       std::stringstream ss;
