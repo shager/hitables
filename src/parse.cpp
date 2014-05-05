@@ -321,6 +321,9 @@ Rule parse::parse_rule(const StrVector& parts) {
 void parse::parse_rules(const StrVector& input, RuleVector& rules) {
   const size_t num_rules = input.size();
   for (size_t i = 0; i < num_rules; ++i) {
+    const std::string& line = input[i];
+    if (line[0] == '#' || line[0] == ':' || line[0] == '*' || line == "COMMIT")
+      continue;
     StrVector parts;
     parse::split(input[i], " ", parts);
     rules.push_back(parse::parse_rule(parts));

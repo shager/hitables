@@ -720,6 +720,23 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules) {
   BOOST_CHECK_EQUAL(rules.size(), 10);
 }
 
+
+BOOST_AUTO_TEST_CASE(parse_parse_rules_with_meta_info) {
+  StrVector input;
+  input.push_back("# 1");
+  input.push_back("# 2");
+  input.push_back("*filter");
+  input.push_back(":INPUT [0:0]");
+  input.push_back(":FORWARD [0:0]");
+  input.push_back(":OUTPUT [0:0]");
+  input.push_back("-A c -j DROP");
+  input.push_back("COMMIT");
+  input.push_back("# 3");
+  RuleVector rules;
+  parse::parse_rules(input, rules);
+  BOOST_CHECK_EQUAL(rules.size(), 1);
+}
+
 /*****************************************************************************
  *                            A R G   T E S T S                              *
  *****************************************************************************/
