@@ -1,11 +1,13 @@
 #include <cstdlib>
 #include "arg.hpp"
 #include <iostream>
+#include <chrono>
 
 const std::string RED("\x1b[31m");
 const std::string YELLOW("\x1b[33m");
 const std::string RESET("\x1b[0m");
 
+typedef std::chrono::high_resolution_clock Clock;
 
 void print_error(const std::string& error) {
   std::cout << std::endl << RED << "ERROR: " << error << RESET
@@ -18,6 +20,19 @@ void print_usage(const std::string& path) {
     << "[--spfac <NUM>] [--search <linear|binary>] "
     << "[--dim-choice <max-dist|least-max>] <PATH_TO_FILE>" << RESET
     << std::endl << std::endl;
+}
+
+
+inline double duration(Clock::time_point& start, Clock::time_point& end) {
+  return std::chrono::duration_cast<std::chrono::duration<double>>(
+      end - start).count();
+}
+
+
+void out_msg(const std::string& str, const bool verbose) {
+  if (!verbose)
+    return;
+  std::cout << str << std::endl;
 }
 
 
@@ -44,6 +59,20 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
+  Clock::time_point start, end;
+  double time_span;
+  std::stringstream msg;
+
+  // parse rules
+  RuleVector rules;
+  start = Clock::now();
+  parse::parse_rules(input, rules);
+  end = Clock::now();
+  time_span = duration(start, end);
+  const size_t num_rules = rules.size();
+  msg << "Parsed " << num_rules << " rule" << (num_rules > 1 ? "s" : "")
+      << " in " << time_span << " seconds";
+  out_msg(msg.str(), args.verbose());
 
   return EXIT_SUCCESS;
 }
