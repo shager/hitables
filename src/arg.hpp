@@ -10,6 +10,15 @@ public:
   Arguments() : binth_(0), spfac_(0), dim_choice_(0),
       search_(Arguments::SEARCH_LINEAR), infile_("") {}
   
+  Arguments& operator=(const Arguments& rhs) {
+    binth_ = rhs.binth();
+    spfac_ = rhs.spfac();
+    search_ = rhs.search();
+    dim_choice_ = rhs.dim_choice();
+    infile_ = rhs.infile();
+    return *this;
+  }
+
   // binth parameter
   static const size_t MIN_BINTH = 1;
   static const size_t MAX_BINTH = 65536;

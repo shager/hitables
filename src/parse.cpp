@@ -224,13 +224,14 @@ Rule parse::parse_rule(const StrVector& parts) {
   dim_t min_prot_ = min_prot;
   dim_t max_prot_ = max_prot;
   Action action(NONE);
+  std::string chain("");
 
   for (size_t i = 0; i < len; ++i) {
     const std::string& word = parts[i];
     if (word == "-A") {
       ++i;
-      if (parts[i] != "INPUT" && parts[i] != "FORWARD" && parts[i] != "OUTPUT")
-        return Rule();
+      check_index(i, len, "Invalid chain specification");
+      chain = parts[i];
 
     } else if (word == "-p") {
       ++i;
@@ -303,6 +304,9 @@ Rule parse::parse_rule(const StrVector& parts) {
     } else
       return Rule();
   }
+  if (chain.size() == 0)
+    return Rule();
+
   // assemble rule from data gathered above
   DimVector dims;
   dims.push_back(std::make_tuple(min_sport, max_sport));
@@ -310,7 +314,7 @@ Rule parse::parse_rule(const StrVector& parts) {
   dims.push_back(std::make_tuple(min_saddr, max_saddr));
   dims.push_back(std::make_tuple(min_daddr, max_daddr));
   dims.push_back(std::make_tuple(min_prot_, max_prot_));
-  return Rule(action, dims);
+  return Rule(action, dims, chain);
 }
 
 

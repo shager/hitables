@@ -624,6 +624,10 @@ BOOST_AUTO_TEST_CASE(parse_parse_rule) {
   parts.clear();
 
   parse::split("-A adasdas -p udp -j ACCEPT", " ", parts);
+  BOOST_CHECK(parse::parse_rule(parts).applicable());
+  parts.clear();
+
+  parse::split("-p udp -j ACCEPT", " ", parts);
   BOOST_CHECK(!parse::parse_rule(parts).applicable());
   parts.clear();
 
@@ -677,6 +681,7 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules_values) {
   BOOST_CHECK(get<1>(bounds[3]) == 8);
   BOOST_CHECK(get<0>(bounds[4]) == UDP);
   BOOST_CHECK(get<1>(bounds[4]) == UDP);
+  BOOST_CHECK(rule.chain() == "INPUT");
 }
 
 
@@ -700,6 +705,7 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules_prefixes) {
   BOOST_CHECK(get<1>(bounds[3]) == 3);
   BOOST_CHECK(get<0>(bounds[4]) == min_prot);
   BOOST_CHECK(get<1>(bounds[4]) == max_prot);
+  BOOST_CHECK(rule.chain() == "INPUT");
 }
 
 

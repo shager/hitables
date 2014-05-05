@@ -21,10 +21,10 @@ const dim_t max_prot = 255;
 class Rule {
 public:
   Rule(const Action& action, const Box& box) : action_(action), box_(box),
-      applicable_(true) {}
+      applicable_(true), chain_("") {}
 
-  Rule(const Action& action, const DimVector& dims) : action_(action),
-      box_(dims), applicable_(true) {}
+  Rule(const Action& action, const DimVector& dims, const std::string& chain)
+      : action_(action), box_(dims), applicable_(true), chain_(chain) {}
 
   Rule() : action_(Action(NONE)), box_(DimVector()), applicable_(false) {}
 
@@ -34,10 +34,13 @@ public:
 
   inline bool applicable() const {return applicable_;}
 
+  inline const std::string& chain() const {return chain_;}
+
 private:
   const Action action_;
   Box box_;
   const bool applicable_;
+  std::string chain_;
 };
 
 typedef std::vector<Rule> RuleVector;
