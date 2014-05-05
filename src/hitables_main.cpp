@@ -16,7 +16,7 @@ void print_error(const std::string& error) {
 void print_usage(const std::string& path) {
   std::cout << std::endl << YELLOW << "Usage: " << path << " [--binth <NUM>] "
     << "[--spfac <NUM>] [--search <linear|binary>] "
-    << "[--dim-choice <max_dist|least_max>] <PATH_TO_FILE>" << RESET
+    << "[--dim-choice <max-dist|least-max>] <PATH_TO_FILE>" << RESET
     << std::endl << std::endl;
 }
 

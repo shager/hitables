@@ -805,9 +805,9 @@ BOOST_AUTO_TEST_CASE(arg_parse_spfac) {
 BOOST_AUTO_TEST_CASE(arg_parse_dim_choice) {
   Arguments args;
   BOOST_CHECK_EQUAL(args.dim_choice(), Arguments::DIM_CHOICE_MAX_DISTINCT);
-  args.parse_dim_choice("least_max");
+  args.parse_dim_choice("least-max");
   BOOST_CHECK_EQUAL(args.dim_choice(), Arguments::DIM_CHOICE_LEAST_MAX_RULES);
-  args.parse_dim_choice("max_dist");
+  args.parse_dim_choice("max-dist");
   BOOST_CHECK_EQUAL(args.dim_choice(), Arguments::DIM_CHOICE_MAX_DISTINCT);
   
   bool thrown = false;
@@ -816,7 +816,7 @@ BOOST_AUTO_TEST_CASE(arg_parse_dim_choice) {
   } catch (const string& msg) {
     stringstream ss;
     ss << "Invalid parameter --dim-choice ('xxx'):";
-    ss << " must be 'max_dist' or 'least_max'!";
+    ss << " must be 'max-dist' or 'least-max'!";
     BOOST_CHECK(msg == ss.str());
     thrown = true;
   }
@@ -855,7 +855,7 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
   vector.push_back("--spfac");
   vector.push_back("20");
   vector.push_back("--dim-choice");
-  vector.push_back("least_max");
+  vector.push_back("least-max");
   vector.push_back("FILENAME");
 
   Arguments a1(Arguments::parse_arg_vector(vector));

@@ -49,14 +49,14 @@ size_t Arguments::parse_int_param(const std::string& input,
 
 
 void Arguments::parse_dim_choice(const std::string& input) {
-  if (input == "max_dist")
+  if (input == "max-dist")
     dim_choice_ = Arguments::DIM_CHOICE_MAX_DISTINCT;
-  else if (input == "least_max")
+  else if (input == "least-max")
     dim_choice_ = Arguments::DIM_CHOICE_LEAST_MAX_RULES;
   else {
     std::stringstream ss;
     ss << "Invalid parameter --dim-choice ('" << input
-        << "'): must be 'max_dist' or 'least_max'!";
+        << "'): must be 'max-dist' or 'least-max'!";
     throw ss.str();
   }
 }
