@@ -91,6 +91,13 @@ namespace parse {
    */
   void parse_rules(const StrVector& input, RuleVector& rules);
 
+  /*
+   * Computes a vector of size_t tuples that indicate the start and end indices
+   * of HiTables-relevant sub rulesets.
+   */
+  void compute_relevant_sub_rulesets(const RuleVector& rules,
+      DomainVector& domains);
+
 }
 
 #endif // HITABLES_PARSE_HPP

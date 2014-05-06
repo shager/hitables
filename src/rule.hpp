@@ -44,5 +44,6 @@ private:
 };
 
 typedef std::vector<Rule> RuleVector;
+typedef std::vector<std::tuple<size_t, size_t>> DomainVector;
 
 #endif // HITABLES_RULE_HPP

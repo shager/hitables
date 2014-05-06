@@ -329,3 +329,29 @@ void parse::parse_rules(const StrVector& input, RuleVector& rules) {
     rules.push_back(parse::parse_rule(parts));
   }
 }
+
+
+void parse::compute_relevant_sub_rulesets(const RuleVector& rules,
+    DomainVector& domains) {
+
+  const size_t len = rules.size();
+  bool have_start = false;
+  size_t start;
+  for (size_t i = 0; i < len; ++i) {
+    const Rule& rule = rules[i];
+    const bool applicable = rule.applicable();
+    if (applicable) {
+      if (!have_start) {
+        have_start = true;
+        start = i;
+      }
+    } else {
+      if (have_start) {
+        have_start = false;
+        domains.push_back(std::make_tuple(start, i - 1));
+      }
+    }
+  }
+  if (have_start)
+    domains.push_back(std::make_tuple(start, len - 1));
+}
