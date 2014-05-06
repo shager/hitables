@@ -70,9 +70,23 @@ int main(int argc, char* argv[]) {
   end = Clock::now();
   time_span = duration(start, end);
   const size_t num_rules = rules.size();
-  msg << "Parsed " << num_rules << " rule" << (num_rules > 1 ? "s" : "")
+  msg << "\nParsed " << num_rules << " rule" << (num_rules > 1 ? "s" : "")
       << " in " << time_span << " seconds";
   out_msg(msg.str(), args.verbose());
 
+  // extract relevant sub-rulesets
+  DomainVector domains;
+  start = Clock::now();
+  parse::compute_relevant_sub_rulesets(rules, domains);
+  end = Clock::now();
+  time_span = duration(start, end);
+  const size_t num_domains = domains.size();
+  std::stringstream domain_msg;
+  domain_msg << "Extracted " << num_domains << " sub-ruleset"
+      << (num_domains > 1 ? "s" : "") << " in " << time_span << " seconds";
+  out_msg(domain_msg.str(), args.verbose());
+
+
+  out_msg("", args.verbose());
   return EXIT_SUCCESS;
 }
