@@ -241,19 +241,28 @@ if options.nftables:
     for rule in rule_set:
         if rule['chain'] == 'INPUT':
             rule['action'] = rule['action'].lower()
-            nftables_save.append('\t\tip saddr %(source_start_address)s/%(source_bit_mask)s ip daddr %(destination_start_address)s/%(destination_bit_mask)s %(protocol)s sport >= %(source_start_port)s %(protocol)s sport <= %(source_end_port)s %(protocol)s dport >= %(destination_start_port)s %(protocol)s dport <= %(destination_end_port)s %(action)s' % rule)
+            if options.masks:
+                nftables_save.append('\t\tip saddr %(source_start_address)s/%(source_bit_mask)s ip daddr %(destination_start_address)s/%(destination_bit_mask)s %(protocol)s sport >= %(source_start_port)s %(protocol)s sport <= %(source_end_port)s %(protocol)s dport >= %(destination_start_port)s %(protocol)s dport <= %(destination_end_port)s %(action)s' % rule)
+            else:
+                pass
     nftables_save.append('\t}\n')
     nftables_save.append('\tchain forward {\n\t\ttype filter hook forward priority 0;')
     for rule in rule_set:
         if rule['chain'] == 'FORWARD':
             rule['action'] = rule['action'].lower()
-            nftables_save.append('\t\tip saddr %(source_start_address)s/%(source_bit_mask)s ip daddr %(destination_start_address)s/%(destination_bit_mask)s %(protocol)s sport >= %(source_start_port)s %(protocol)s sport <= %(source_end_port)s %(protocol)s dport >= %(destination_start_port)s %(protocol)s dport <= %(destination_end_port)s %(action)s' % rule)
+            if options.masks:
+                nftables_save.append('\t\tip saddr %(source_start_address)s/%(source_bit_mask)s ip daddr %(destination_start_address)s/%(destination_bit_mask)s %(protocol)s sport >= %(source_start_port)s %(protocol)s sport <= %(source_end_port)s %(protocol)s dport >= %(destination_start_port)s %(protocol)s dport <= %(destination_end_port)s %(action)s' % rule)
+            else:
+                pass
     nftables_save.append('\t}\n')
     nftables_save.append('\tchain output {\n\t\ttype filter hook output priority 0;')
     for rule in rule_set:
         if rule['chain'] == 'OUTPUT':
             rule['action'] = rule['action'].lower()
-            nftables_save.append('\t\tip saddr %(source_start_address)s/%(source_bit_mask)s ip daddr %(destination_start_address)s/%(destination_bit_mask)s %(protocol)s sport >= %(source_start_port)s %(protocol)s sport <= %(source_end_port)s %(protocol)s dport >= %(destination_start_port)s %(protocol)s dport <= %(destination_end_port)s %(action)s' % rule)
+            if options.masks:
+                nftables_save.append('\t\tip saddr %(source_start_address)s/%(source_bit_mask)s ip daddr %(destination_start_address)s/%(destination_bit_mask)s %(protocol)s sport >= %(source_start_port)s %(protocol)s sport <= %(source_end_port)s %(protocol)s dport >= %(destination_start_port)s %(protocol)s dport <= %(destination_end_port)s %(action)s' % rule)
+            else:
+                nftables_save.append('\t\tip saddr >= %(source_start_address)s ip saddr <= %(source_end_address)s ip daddr >= %(destination_start_address)s ip daddr <= %(destination_end_address)s %(protocol)s sport >= %(source_start_port)s %(protocol)s sport <= %(source_end_port)s %(protocol)s dport >= %(destination_start_port)s %(protocol)s dport <= %(destination_end_port)s %(action)s' % rule)
     nftables_save.append('\t}\n')
     nftables_save.append('}')
     print '\n'.join(nftables_save)
@@ -265,8 +274,10 @@ else:
     iptables_save.append(':FORWARD ACCEPT [0:0]')
     iptables_save.append(':OUTPUT ACCEPT [0:0]')
     for rule in rule_set:
-        iptables_save.append('-A %(chain)s -p %(protocol)s -m iprange --src-range %(source_start_address)s-%(source_end_address)s --dst-range %(destination_start_address)s-%(destination_end_address)s -m %(protocol)s --sport %(source_start_port)s:%(source_end_port)s --dport %(destination_start_port)s:%(destination_end_port)s -j %(action)s' % rule)
-        #iptables_save.append('-A %(chain)s -p %(protocol)s -m iprange --src-range %(source_start_address)s-%(source_end_address)s --sport %(source_start_port)s:%(source_end_port)s -j %(action)s' % rule)
+        if options.masks:
+            iptables_save.append('-A %(chain)s -p %(protocol)s -s %(source_start_address)s/%(source_bit_mask)s -d %(destination_start_address)s/%(destination_bit_mask)s -m %(protocol)s --sport %(source_start_port)s:%(source_end_port)s --dport %(destination_start_port)s:%(destination_end_port)s -j %(action)s' % rule)
+        else:
+            iptables_save.append('-A %(chain)s -p %(protocol)s -m iprange --src-range %(source_start_address)s-%(source_end_address)s --dst-range %(destination_start_address)s-%(destination_end_address)s -m %(protocol)s --sport %(source_start_port)s:%(source_end_port)s --dport %(destination_start_port)s:%(destination_end_port)s -j %(action)s' % rule)
     iptables_save.append('COMMIT')
     iptables_save.append('# Completed on %s' % time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime()))
     print '\n'.join(iptables_save)
