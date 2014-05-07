@@ -96,7 +96,7 @@ namespace parse {
    * of HiTables-relevant sub rulesets.
    */
   void compute_relevant_sub_rulesets(const RuleVector& rules,
-      DomainVector& domains);
+      const size_t min_rules, DomainVector& domains);
 
 }
 
