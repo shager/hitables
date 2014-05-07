@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
   // extract relevant sub-rulesets
   DomainVector domains;
   start = Clock::now();
-  parse::compute_relevant_sub_rulesets(rules, domains);
+  parse::compute_relevant_sub_rulesets(rules, 10, domains);
   end = Clock::now();
   time_span = duration(start, end);
   const size_t num_domains = domains.size();

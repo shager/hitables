@@ -332,7 +332,7 @@ void parse::parse_rules(const StrVector& input, RuleVector& rules) {
 
 
 void parse::compute_relevant_sub_rulesets(const RuleVector& rules,
-    DomainVector& domains) {
+    const size_t min_rules, DomainVector& domains) {
 
   const size_t len = rules.size();
   bool have_start = false;
@@ -348,10 +348,11 @@ void parse::compute_relevant_sub_rulesets(const RuleVector& rules,
     } else {
       if (have_start) {
         have_start = false;
-        domains.push_back(std::make_tuple(start, i - 1));
+        if (i - start >= min_rules)
+          domains.push_back(std::make_tuple(start, i - 1));
       }
     }
   }
-  if (have_start)
+  if (have_start && (len - start >= min_rules))
     domains.push_back(std::make_tuple(start, len - 1));
 }
