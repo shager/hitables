@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+#PYTHON_ARGCOMPLETE_OK
 
 import sys
 import helper
@@ -6,24 +7,24 @@ import math
 import random
 import time
 import iptools
-from optparse import OptionParser
+import argcomplete, argparse
 
 __version__ = 'v0.2'
 
-parser = OptionParser()
-parser.add_option('-n', '--number', dest='num', help='number of rules ', type='int')
-parser.add_option('--debug', dest='debug', help='turn debug output on', action='store_true')
-parser.add_option('-v', '--version', dest='version', help='prints version informaton', action='store_true')
-parser.add_option('-m', '--masks', dest='masks', help='use subnet masks instead of ranges', action='store_true')
-parser.add_option('-f', '--nftables', dest='nftables', help='generate nftables rules instead of iptables', action='store_true')
-parser.add_option('-p', '--protocol', dest='protocols', help='comma separated list of allowed protocols', default='tcp,udp')
-parser.add_option('-s', '--source', dest='sources', help='maximum portion of the full IPv4 address range', default='0.000001', type='float')
-parser.add_option('-d', '--destination', dest='destinations', help='maximum portion of the full IPv4 address range', default='0.000001', type='float')
-parser.add_option('-c', '--chain', dest='chain', help='target chain for all rules', default='FORWARD')
-parser.add_option('-r', '--randomseed', dest='randomseed', help='seed for the pseudo random number generator', default=time.time())
-parser.add_option('--sport', dest='sport', help='maximum source port range', default='0.02', type='float')
-parser.add_option('--dport', dest='dport', help='maximum destination port range', default='0.02', type='float')
-parser.add_option('-a', '--action', dest='actions', help='list of actions which could be taken', default='DROP')
+parser = argparse.ArgumentParser()
+parser.add_argument('-a', '--action', dest='actions', help='list of actions which could be taken', default='DROP')
+parser.add_argument('-c', '--chain', dest='chain', help='target chain for all rules', default='FORWARD')
+parser.add_argument('-d', '--destination', dest='destinations', help='maximum portion of the full IPv4 address range', default='0.000001', type=float)
+parser.add_argument('--debug', dest='debug', help='turn debug output on', action='store_true')
+parser.add_argument('--dport', dest='dport', help='maximum destination port range', default='0.02', type=float)
+parser.add_argument('-f', '--nftables', dest='nftables', help='generate nftables rules instead of iptables', action='store_true')
+parser.add_argument('-m', '--masks', dest='masks', help='use subnet masks instead of ranges', action='store_true')
+parser.add_argument('-n', '--number', dest='num', help='number of rules ', type=int)
+parser.add_argument('-p', '--protocol', dest='protocols', help='comma separated list of allowed protocols', default='tcp,udp')
+parser.add_argument('-r', '--randomseed', dest='randomseed', help='seed for the pseudo random number generator', default=time.time())
+parser.add_argument('-s', '--source', dest='sources', help='maximum portion of the full IPv4 address range', default='0.000001', type=float)
+parser.add_argument('--sport', dest='sport', help='maximum source port range', default='0.02', type=float)
+parser.add_argument('-v', '--version', dest='version', help='prints version informaton', action='store_true')
 # maybe add an option for minimal address range later?
 source_min_width = 0
 source_max_width = 32
@@ -32,7 +33,8 @@ destination_max_width = 32
 source_port_min_width = 0
 destination_port_min_width = 0
 
-(options, args) = parser.parse_args()
+argcomplete.autocomplete(parser)
+options = parser.parse_args()
 
 if options.version:
     print 'genIpSave.py %s' % __version__
