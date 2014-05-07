@@ -60,10 +60,10 @@ else:
     chain = options.chain
 
 if options.masks:
-    if options.sources > 32 or options.sources < 1 or options.destinations > 32 or options.destinations < 1:
-        if options.sources > 32 or options.sources <= 1:
+    if options.sources > 32 or options.sources < 0 or options.destinations > 32 or options.destinations < 0:
+        if options.sources > 32 or options.sources <= 0:
             print 'source address mask should be: /1 <= range <= /32'
-        if options.destinations > 32 or options.destinations <= 1:
+        if options.destinations > 32 or options.destinations <= 0:
             print 'destination address mask should be: /1 <= range <= /32'
         error = -3
     else:
