@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 #PYTHON_ARGCOMPLETE_OK
+#see: https://github.com/kislyuk/argcomplete.git
 
 import sys
 import helper
@@ -9,7 +10,7 @@ import time
 import iptools
 import argcomplete, argparse
 
-__version__ = 'v0.2'
+__version__ = 'v0.25'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-a', '--action', dest='actions', help='list of actions which could be taken', default='DROP')
