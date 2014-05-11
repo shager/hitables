@@ -11,6 +11,15 @@ inline bool is_digit(const char c) {
 }
 
 
+bool is_digit_string(const std::string& input) {
+  const size_t len = input.size();
+  for (size_t i = 0; i < len; ++i)
+    if (!is_digit(input[i]))
+      return false;
+  return true;
+}
+
+
 std::string trim_leading_zeros(const std::string& str) {
   const size_t len = str.size();
   size_t i = 0;
@@ -127,4 +136,22 @@ Arguments Arguments::parse_arg_vector(const StrVector& arg_vector) {
   }
   args.parse_infile(arg_vector[num_non_file_args]);
   return args;
+}
+
+
+void Arguments::parse_min_rules(const std::string& input) {
+  size_t temp_min_rules = 0;
+  if (!is_digit_string(input))
+    goto ERROR;
+  temp_min_rules = atoi(input.c_str());
+  if (temp_min_rules == 0)
+    goto ERROR;
+  min_rules_ = temp_min_rules;
+  return;
+
+ERROR:
+  std::stringstream ss;
+  ss << "Invalid parameter --min-rules ('" << input << "'):"
+      << " must be a positive integer!";
+  throw ss.str();
 }

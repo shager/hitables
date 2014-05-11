@@ -922,6 +922,33 @@ BOOST_AUTO_TEST_CASE(arg_parse_search) {
 }
 
 
+BOOST_AUTO_TEST_CASE(arg_parse_min_rules) {
+  Arguments args;
+  BOOST_CHECK_EQUAL(args.min_rules(), 10);
+  args.parse_min_rules("20");
+  BOOST_CHECK_EQUAL(args.min_rules(), 20);
+
+  StrVector fails;
+  fails.push_back("bla");
+  fails.push_back("0");
+  fails.push_back("-1");
+  for (size_t i = 0; i < fails.size(); ++i) {
+    const string& fail = fails[i];
+    bool thrown = false;
+    try {
+      args.parse_min_rules(fail);
+    } catch (const string& msg) {
+      thrown = true;
+      stringstream ss;
+      ss << "Invalid parameter --min-rules ('" << fail << "'):";
+      ss << " must be a positive integer!";
+      BOOST_CHECK(ss.str() == msg);
+    }
+    BOOST_CHECK(thrown);
+  }
+}
+
+
 BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
   StrVector vector;
   vector.push_back("--binth");

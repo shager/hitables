@@ -8,7 +8,8 @@
 class Arguments {
 public:
   Arguments() : binth_(0), spfac_(0), dim_choice_(0),
-      search_(Arguments::SEARCH_LINEAR), infile_(""), verbose_(false) {}
+      search_(Arguments::SEARCH_LINEAR), infile_(""), verbose_(false),
+      min_rules_(10) {}
   
   Arguments& operator=(const Arguments& rhs) {
     binth_ = rhs.binth();
@@ -17,6 +18,7 @@ public:
     dim_choice_ = rhs.dim_choice();
     infile_ = rhs.infile();
     verbose_ = rhs.verbose();
+    min_rules_ = rhs.min_rules();
     return *this;
   }
 
@@ -60,6 +62,10 @@ public:
   inline const bool verbose() const {return verbose_;}
   inline void set_verbose(const bool verbose) {verbose_ = verbose;}
 
+  // minimum number of rules
+  inline const size_t min_rules() const {return min_rules_;}
+  void parse_min_rules(const std::string& input);
+
   /*
    * Parses an entire argument vector.
    * Returns an Arguments object in case of success or throws an std::string in
@@ -74,6 +80,7 @@ private:
   size_t search_;
   std::string infile_;
   bool verbose_;
+  size_t min_rules_;
 
   size_t parse_int_param(const std::string& input,
       const std::string& param, const size_t min, const size_t max);
