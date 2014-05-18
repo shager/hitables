@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <cstdint>
-#include "partial_ruleset.hpp"
+#include "rule.hpp"
 
 typedef std::vector<std::string> StrVector;
 
