@@ -8,7 +8,7 @@ import math
 import random
 import time
 import iptools
-import argcomplete, argparse
+import argparse
 
 __version__ = 'v0.25'
 
@@ -34,7 +34,7 @@ destination_max_width = 32
 source_port_min_width = 0
 destination_port_min_width = 0
 
-argcomplete.autocomplete(parser)
+#argcomplete.autocomplete(parser)
 options = parser.parse_args()
 
 if options.version:
