@@ -18,6 +18,10 @@ public:
 
   inline const std::string& next_chain() const {return next_chain_;}
 
+  bool operator==(const Action& other) const;
+
+  inline bool operator!=(const Action& other) const {return !(*this == other);}
+
 private:
   ActionCode code_;
   std::string next_chain_;

@@ -5,7 +5,7 @@
 #include <vector>
 #include <queue>
 #include <cmath>
-#include "box.hpp"
+#include "rule.hpp"
 
 class TreeNode {
 
@@ -79,14 +79,14 @@ public:
   void build_tree(const size_t spfac, const size_t binth);
 
   inline size_t num_rules() const {return rules_.size();}
-  inline void add_rule(const Box* rule) {rules_.push_back(rule);}
+  inline void add_rule(const Rule* rule) {rules_.push_back(rule);}
   inline const Box& box() const {return box_;}
   inline std::vector<TreeNode>& children() {return children_;}
-  inline const std::vector<const Box*> rules() const {return rules_;}
+  inline const std::vector<const Rule*> rules() const {return rules_;}
 
 private:
   Box box_;
-  std::vector<const Box*> rules_;
+  std::vector<const Rule*> rules_;
   std::vector<TreeNode> children_;
   bool has_been_cut_;
 

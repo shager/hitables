@@ -17,19 +17,22 @@ using namespace std;
                                                   \
   DimVector rule1_bounds;                         \
   rule1_bounds.push_back(make_tuple(1, 3));       \
-  Box rule1(rule1_bounds);                        \
+  Box rule1_box(rule1_bounds);                    \
+  Rule rule1(DROP, rule1_box);                    \
                                                   \
   DimVector rule2_bounds;                         \
   rule2_bounds.push_back(make_tuple(4, 7));       \
-  Box rule2(rule2_bounds);                        \
-                                                  \
+  Box rule2_box(rule2_bounds);                        \
+  Rule rule2(DROP, rule2_box);                            \
+                               \
   DimVector rule3_bounds;                         \
   rule3_bounds.push_back(make_tuple(8, 10));      \
-  Box rule3(rule3_bounds);                        \
+  Box rule3_box(rule3_bounds);                        \
+  Rule rule3(DROP, rule3_box);                    \
                                                   \
-  node.add_rule(static_cast<const Box*>(&rule1)); \
-  node.add_rule(static_cast<const Box*>(&rule2)); \
-  node.add_rule(static_cast<const Box*>(&rule3));
+  node.add_rule(static_cast<const Rule*>(&rule1)); \
+  node.add_rule(static_cast<const Rule*>(&rule2)); \
+  node.add_rule(static_cast<const Rule*>(&rule3));
 
 
 /*****************************************************************************
@@ -178,11 +181,11 @@ BOOST_AUTO_TEST_CASE(treenode_cut_small_rules) {
   DimVector bounds;
   bounds.push_back(make_tuple(0, 10));
   TreeNode node(bounds);
-  std::vector<Box*> rule_pointers;
+  std::vector<Rule*> rule_pointers;
   for (size_t i = 0; i < 10; ++i) {
     DimVector rule_bounds;
     rule_bounds.push_back(make_tuple(i, i));
-    Box* rule = new Box(rule_bounds);
+    Rule* rule = new Rule(DROP, Box(rule_bounds));
     node.add_rule(rule);
     rule_pointers.push_back(rule);
   }
@@ -218,6 +221,7 @@ BOOST_AUTO_TEST_CASE(treenode_reset_cut) {
   BOOST_CHECK(!node.children().empty());
 }
 
+
 BOOST_AUTO_TEST_CASE(treenode_space_measure_upper_bound) {
   SINGLE_DIM_NODE_WITH_THREE_RULES;
   for (size_t spfac = 1; spfac <= 10; ++spfac)
@@ -233,11 +237,11 @@ BOOST_AUTO_TEST_CASE(treenode_determine_number_of_cuts) {
   DimVector bounds2;
   bounds2.push_back(make_tuple(0, 10));
   TreeNode node2(bounds2);
-  std::vector<Box*> rule_pointers;
+  std::vector<Rule*> rule_pointers;
   for (size_t i = 0; i < 10; ++i) {
     DimVector rule_bounds;
     rule_bounds.push_back(make_tuple(i, i));
-    Box* rule = new Box(rule_bounds);
+    Rule* rule = new Rule(DROP, Box(rule_bounds));
     node2.add_rule(rule);
     rule_pointers.push_back(rule);
   }
@@ -257,13 +261,13 @@ BOOST_AUTO_TEST_CASE(treenode_dim_max_distinct_rules) {
   DimVector rule1_bounds;
   rule1_bounds.push_back(make_tuple(1, 5));
   rule1_bounds.push_back(make_tuple(0, 1));
-  Box rule1(rule1_bounds);
+  Rule rule1(DROP, Box(rule1_bounds));
   node.add_rule(&rule1);
 
   DimVector rule2_bounds;
   rule2_bounds.push_back(make_tuple(6, 9));
   rule2_bounds.push_back(make_tuple(0, 1));
-  Box rule2(rule2_bounds);
+  Rule rule2(DROP, Box(rule2_bounds));
   node.add_rule(&rule2);
 
   const size_t dim = node.dim_max_distinct_rules();
@@ -274,13 +278,13 @@ BOOST_AUTO_TEST_CASE(treenode_dim_max_distinct_rules) {
   DimVector rule3_bounds;
   rule3_bounds.push_back(make_tuple(0, 1));
   rule3_bounds.push_back(make_tuple(1, 5));
-  Box rule3(rule3_bounds);
+  Rule rule3(DROP, Box(rule3_bounds));
   node2.add_rule(&rule3);
 
   DimVector rule4_bounds;
   rule4_bounds.push_back(make_tuple(0, 1));
   rule4_bounds.push_back(make_tuple(6, 9));
-  Box rule4(rule4_bounds);
+  Rule rule4(DROP, Box(rule4_bounds));
   node2.add_rule(&rule4);
 
   const size_t dim2 = node2.dim_max_distinct_rules();
@@ -297,13 +301,13 @@ BOOST_AUTO_TEST_CASE(treenode_dim_least_max_rules_per_child) {
   DimVector rule1_bounds;
   rule1_bounds.push_back(make_tuple(0, 10));
   rule1_bounds.push_back(make_tuple(1, 1));
-  Box rule1(rule1_bounds);
+  Rule rule1(DROP, Box(rule1_bounds));
   node.add_rule(&rule1);
 
   DimVector rule2_bounds;
   rule2_bounds.push_back(make_tuple(0, 10));
   rule2_bounds.push_back(make_tuple(8, 8));
-  Box rule2(rule2_bounds);
+  Rule rule2(DROP, Box(rule2_bounds));
   node.add_rule(&rule2);
 
   const size_t dim = node.dim_least_max_rules_per_child(1);

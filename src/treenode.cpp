@@ -13,16 +13,15 @@ void TreeNode::cut(const dim_t dimension, const size_t num_cuts) {
   // Check for each rule whether it collides with one of the new boxes.
   // If yes, store a pointer to this rule in the respective tree nodes.
   for (size_t i = 0; i < num_rules; ++i) {
-    const Box* rule_box = rules_[i];
+    const Box& rule_box = rules_[i]->box();
     for (size_t j = 0; j < num_result_boxes; ++j) {
       TreeNode& child = children_[j];
-      if (rule_box->collide(child.box()))
-        child.add_rule(rule_box);
+      if (rule_box.collide(child.box()))
+        child.add_rule(rules_[i]);
     }
   }
   has_been_cut_ = true;
 }
-
 
 
 size_t TreeNode::space_measure() const {
@@ -62,7 +61,7 @@ size_t TreeNode::dim_max_distinct_rules() const {
   size_t* distinct_rules = new size_t[num_dims];
   size_t max_distinct = 0;
   for (size_t i = 0; i < num_dims; ++i) {
-    const size_t num_distinct = Box::num_distinct_boxes_in_dim(i, rules_);
+    const size_t num_distinct = Rule::num_distinct_rules_in_dim(i, rules_);
     max_distinct = max_distinct < num_distinct ? num_distinct : max_distinct;
     distinct_rules[i] = num_distinct;
   }
