@@ -37,6 +37,9 @@ void out_msg(const std::string& str, const bool verbose) {
 }
 
 
+/*
+ * HiTables entry point
+ */
 int main(int argc, char* argv[]) {
   StrVector arg_vector;
   for (int i = 1; i < argc; ++i)
@@ -78,7 +81,7 @@ int main(int argc, char* argv[]) {
   // extract relevant sub-rulesets
   DomainVector domains;
   start = Clock::now();
-  parse::compute_relevant_sub_rulesets(rules, 10, domains);
+  parse::compute_relevant_sub_rulesets(rules, args.min_rules(), domains);
   end = Clock::now();
   time_span = duration(start, end);
   const size_t num_domains = domains.size();
