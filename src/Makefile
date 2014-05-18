@@ -19,7 +19,7 @@ rule.o: rule.cpp rule.hpp
 action.o: action.cpp action.hpp
 	$(CC) -c action.cpp $(CFLAGS)
 
-parse.o: parse.cpp parse.hpp rule.hpp partial_ruleset.hpp
+parse.o: parse.cpp parse.hpp
 	$(CC) -c parse.cpp $(CFLAGS)
 
 treenode.o: treenode.cpp treenode.hpp
