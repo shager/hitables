@@ -87,39 +87,35 @@ void Arguments::parse_search(const std::string& input) {
 
 inline void check_arg_index(const size_t index, const size_t max) {
   if (index >= max)
-    throw "Invalid number of arguments: parameter or input file missing?";
+    throw std::string(
+        "Invalid number of arguments: parameter or input file missing?");
 }
 
 
 Arguments Arguments::parse_arg_vector(const StrVector& arg_vector) {
   const size_t num_args = arg_vector.size();
-  if (num_args == 0) 
-    throw std::string(
-        "Too few arguments, at least an input file must be specified!");
-  if (num_args == 1 && arg_vector[0] == "--usage")
-    throw std::string("usage");
-  const size_t num_non_file_args = num_args - 1;
   Arguments args;
-  for (size_t i = 0; i < num_non_file_args; ++i) {
+  bool infile_specified = false;
+  for (size_t i = 0; i < num_args; ++i) {
     const std::string& arg = arg_vector[i];
     if (arg == "--binth") {
       ++i;
-      check_arg_index(i, num_non_file_args);
+      check_arg_index(i, num_args);
       args.parse_binth(arg_vector[i]);
 
     } else if (arg == "--spfac") {
       ++i;
-      check_arg_index(i, num_non_file_args);
+      check_arg_index(i, num_args);
       args.parse_spfac(arg_vector[i]);
 
     } else if (arg == "--search") {
       ++i;
-      check_arg_index(i, num_non_file_args);
+      check_arg_index(i, num_args);
       args.parse_search(arg_vector[i]);
 
     } else if (arg == "--dim-choice") {
       ++i;
-      check_arg_index(i, num_non_file_args);
+      check_arg_index(i, num_args);
       args.parse_dim_choice(arg_vector[i]);
 
     } else if (arg == "--usage") {
@@ -128,13 +124,25 @@ Arguments Arguments::parse_arg_vector(const StrVector& arg_vector) {
     } else if (arg == "--verbose") {
       args.set_verbose(true);
 
+    } else if (arg == "--min-rules") {
+      ++i;
+      check_arg_index(i, num_args);
+      args.parse_min_rules(arg_vector[i]);
+
+    } else if (arg == "--infile") {
+      ++i;
+      check_arg_index(i, num_args);
+      args.parse_infile(arg_vector[i]);
+      infile_specified = true;
+
     } else {
       std::stringstream ss;
       ss << "Unknown argument '" << arg << "'!";
       throw ss.str();
     }
   }
-  args.parse_infile(arg_vector[num_non_file_args]);
+  if (!infile_specified)
+    throw std::string("No input file specified (use --infile)!");
   return args;
 }
 

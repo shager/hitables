@@ -959,6 +959,7 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
   vector.push_back("20");
   vector.push_back("--dim-choice");
   vector.push_back("least-max");
+  vector.push_back("--infile");
   vector.push_back("FILENAME");
 
   Arguments a1(Arguments::parse_arg_vector(vector));
@@ -982,7 +983,6 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
 BOOST_AUTO_TEST_CASE(arg_parse_arg_vector_usage) {
   StrVector v;
   v.push_back("--usage");
-  v.push_back("blabla");
   bool thrown = false;
   try {
     Arguments::parse_arg_vector(v);
@@ -997,11 +997,12 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector_usage) {
 BOOST_AUTO_TEST_CASE(arg_parse_arg_vector_verbose) {
   StrVector v;
   v.push_back("--verbose");
+  v.push_back("--infile");
   v.push_back("blabla");
   Arguments args(Arguments::parse_arg_vector(v));
   BOOST_CHECK(args.verbose());
 
-  v.erase(v.begin() + 1);
+  v.erase(v.begin());
   args = Arguments::parse_arg_vector(v);
   BOOST_CHECK(!args.verbose());
 }
