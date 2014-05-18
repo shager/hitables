@@ -124,3 +124,28 @@ void TreeNode::build_tree(const size_t spfac, const size_t binth) {
     }
   }
 }
+
+
+Box TreeNode::minimal_bounding_box(const RuleVector& rules,
+    const DomainTuple& domain) {
+
+  const size_t num_rules = rules.size();
+  DimVector dims;
+  if (num_rules == 0)
+    return Box(dims);
+  const size_t num_dims = rules[0].box().num_dims();
+  for (size_t i = 0; i < num_dims; ++i) {
+    dim_t min = max_ip;
+    dim_t max = min_ip;
+    const size_t start = std::get<0>(domain);
+    const size_t end = std::get<1>(domain);
+    for (size_t j = start; j <= end; ++j) {
+      const DimVector& dims = rules[j].box().box_bounds();
+      const DimTuple& dim_tuple = dims[i];
+      min = min < std::get<0>(dim_tuple) ? min : std::get<0>(dim_tuple);
+      max = max > std::get<1>(dim_tuple) ? max : std::get<1>(dim_tuple);
+    }
+    dims.push_back(std::make_tuple(min, max));
+  }
+  return Box(dims);
+}

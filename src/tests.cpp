@@ -327,6 +327,54 @@ BOOST_AUTO_TEST_CASE(treenode_random_dim) {
   }
 }
 
+#include <iostream>
+
+BOOST_AUTO_TEST_CASE(treenode_rule_ctor) {
+  RuleVector rules;
+  DimVector v1;
+  v1.push_back(make_tuple(1, 3));
+  v1.push_back(make_tuple(2, 5));
+  Box box1(v1);
+  rules.push_back(Rule(DROP, box1));
+
+  DimVector v2;
+  v2.push_back(make_tuple(0, 11));
+  v2.push_back(make_tuple(5, 15));
+  Box box2(v2);
+  rules.push_back(Rule(DROP, box2));
+
+  DimVector v3;
+  v3.push_back(make_tuple(0, 20));
+  v3.push_back(make_tuple(4, 30));
+  Box box3(v3);
+  rules.push_back(Rule(DROP, box3));
+
+  TreeNode node1(rules, make_tuple(0, 1));
+  BOOST_CHECK_EQUAL(node1.num_rules(), 2);
+  DimVector db1;
+  db1.push_back(make_tuple(0, 11));
+  db1.push_back(make_tuple(2, 15));
+  Box bounding_box1(db1);
+  BOOST_CHECK(node1.box() == bounding_box1);
+
+  TreeNode node2(rules, make_tuple(1, 2));
+  BOOST_CHECK_EQUAL(node2.num_rules(), 2);
+  DimVector db2;
+  db2.push_back(make_tuple(0, 20));
+  db2.push_back(make_tuple(4, 30));
+  Box bounding_box2(db2);
+  BOOST_CHECK(node2.box() == bounding_box2);
+
+  TreeNode node3(rules, make_tuple(0, 2));
+  BOOST_CHECK_EQUAL(node3.num_rules(), 3);
+  DimVector db3;
+  db3.push_back(make_tuple(0, 20));
+  db3.push_back(make_tuple(2, 30));
+  Box bounding_box3(db3);
+  BOOST_CHECK(node3.box() == bounding_box3);
+}
+
+
 /*****************************************************************************
  *                         P A R S E   T E S T S                             *
  *****************************************************************************/

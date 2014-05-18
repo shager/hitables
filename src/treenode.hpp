@@ -16,6 +16,22 @@ public:
   TreeNode(const Box& box) : box_(box), has_been_cut_(false) {}
 
   /*
+   * Standard constructor to build a tree node.  rules is a vector of rules,
+   * and domain specifies which portion of the rule vector should be taken into
+   * account during node construction.  During construction, the minimal
+   * bounding box is computed for the tree node with respect to the regarded
+   * rules.
+   */
+  TreeNode(const RuleVector& rules, const DomainTuple& domain) :
+      box_(minimal_bounding_box(rules, domain)), has_been_cut_(false) {
+  
+    const size_t start = std::get<0>(domain);
+    const size_t end = std::get<1>(domain);
+    for (size_t i = start; i <= end; ++i)
+      rules_.push_back(&rules[i]);
+  }
+
+  /*
    * Cuts this node along the given dimension the specified number of times.
    * The new resulting nodes are then stored in the children_ vector.
    */
@@ -97,6 +113,12 @@ private:
   inline size_t min(const size_t a, const size_t b) const {
     return a < b ? a : b;
   }
+
+  /*
+   * Computes the minimal bounding box around the rules specified by domain.
+   */
+  Box minimal_bounding_box(const RuleVector& rules, const DomainTuple& domain);
+
 };
 
 typedef std::queue<TreeNode*> NodeRefQueue;
