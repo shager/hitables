@@ -6,6 +6,7 @@
 #include <queue>
 #include <cmath>
 #include "rule.hpp"
+#include "arg.hpp"
 
 class TreeNode {
 
@@ -91,8 +92,11 @@ public:
    * Builds a HiCuts tree with this node as tree root.
    * spfac and binth are parameters that influence the shape of the constructed
    * tree, as described in the paper.
+   * dim_choice is a parameter that selects the algorithm for the choice of the
+   * cut dimension.
    */
-  void build_tree(const size_t spfac, const size_t binth);
+  void build_tree(const size_t spfac, const size_t binth,
+      const size_t dim_choice);
 
   inline size_t num_rules() const {return rules_.size();}
   inline void add_rule(const Rule* rule) {rules_.push_back(rule);}
@@ -121,7 +125,9 @@ private:
 
 };
 
+
 typedef std::queue<TreeNode*> NodeRefQueue;
 typedef std::vector<TreeNode> NodeVector;
+
 
 #endif // HITABLES_TREENODE_HPP

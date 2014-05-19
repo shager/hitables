@@ -92,11 +92,12 @@ int main(int argc, char* argv[]) {
   out_msg(domain_msg.str(), args.verbose());
 
   // perform HiCuts transformation
+  const size_t dim_choice = args.dim_choice();
   start = Clock::now();
   for (size_t i = 0; i < num_domains; ++i) {
     const DomainTuple& domain = domains[i];
     TreeNode tree_root(rules, domain);
-    tree_root.build_tree(args.spfac(), args.binth());
+    tree_root.build_tree(args.spfac(), args.binth(), dim_choice);
   }
   end = Clock::now();
   time_span = duration(start, end);

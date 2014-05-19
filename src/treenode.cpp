@@ -104,15 +104,21 @@ size_t TreeNode::dim_least_max_rules_per_child(const size_t spfac) {
 }
 
 
-void TreeNode::build_tree(const size_t spfac, const size_t binth) {
+void TreeNode::build_tree(const size_t spfac, const size_t binth,
+    const size_t dim_choice) {
+
   NodeRefQueue fifo;
   fifo.push(this);
+  size_t cut_dim = 0;
   while (!fifo.empty()) {
     TreeNode* node = fifo.front();
     fifo.pop();
     if (node->num_rules() <= binth)
       continue;
-    const size_t cut_dim = node->dim_least_max_rules_per_child(spfac);
+    if (dim_choice == Arguments::DIM_CHOICE_LEAST_MAX_RULES)
+      cut_dim = node->dim_least_max_rules_per_child(spfac);
+    else
+      cut_dim = node->dim_max_distinct_rules();
     const size_t num_cuts = node->determine_number_of_cuts(cut_dim, spfac);
     node->cut(cut_dim, num_cuts);
     NodeVector& children = node->children();

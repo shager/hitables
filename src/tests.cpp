@@ -854,7 +854,7 @@ BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets) {
 
 BOOST_AUTO_TEST_CASE(arg_parse_binth) {
   Arguments args;
-  BOOST_CHECK_EQUAL(args.binth(), 0);
+  BOOST_CHECK_EQUAL(args.binth(), 4);
 
   StrVector correct;
   correct.push_back("17");
@@ -893,7 +893,7 @@ BOOST_AUTO_TEST_CASE(arg_parse_binth) {
 
 BOOST_AUTO_TEST_CASE(arg_parse_spfac) {
   Arguments args;
-  BOOST_CHECK_EQUAL(args.spfac(), 0);
+  BOOST_CHECK_EQUAL(args.spfac(), 4);
 
   StrVector correct;
   correct.push_back("17");
