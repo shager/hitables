@@ -21,6 +21,7 @@ void TreeNode::cut(const dim_t dimension, const size_t num_cuts) {
     }
   }
   has_been_cut_ = true;
+  cut_dim_ = dimension;
 }
 
 
