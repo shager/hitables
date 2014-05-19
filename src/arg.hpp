@@ -7,7 +7,7 @@
 
 class Arguments {
 public:
-  Arguments() : binth_(0), spfac_(0), dim_choice_(0),
+  Arguments() : binth_(4), spfac_(4), dim_choice_(0),
       search_(Arguments::SEARCH_LINEAR), infile_(""), verbose_(false),
       min_rules_(10) {}
   

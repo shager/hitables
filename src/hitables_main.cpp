@@ -2,6 +2,7 @@
 #include "arg.hpp"
 #include <iostream>
 #include <chrono>
+#include "treenode.hpp"
 
 const std::string RED("\x1b[31m");
 const std::string YELLOW("\x1b[33m");
@@ -90,6 +91,19 @@ int main(int argc, char* argv[]) {
       << (num_domains > 1 ? "s" : "") << " in " << time_span << " seconds";
   out_msg(domain_msg.str(), args.verbose());
 
+  // perform HiCuts transformation
+  start = Clock::now();
+  for (size_t i = 0; i < num_domains; ++i) {
+    const DomainTuple& domain = domains[i];
+    TreeNode tree_root(rules, domain);
+    tree_root.build_tree(args.spfac(), args.binth());
+  }
+  end = Clock::now();
+  time_span = duration(start, end);
+  std::stringstream hicuts_msg;
+  hicuts_msg << "Performed HiCuts transformation in " << time_span
+      << " seconds";
+  out_msg(hicuts_msg.str(), args.verbose());
 
   out_msg("", args.verbose());
   return EXIT_SUCCESS;
