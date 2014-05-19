@@ -211,7 +211,9 @@ inline void check_index(const size_t i, const size_t len,
 }
 
 
-Rule parse::parse_rule(const StrVector& parts) {
+Rule parse::parse_rule(const std::string& input) {
+  StrVector parts;
+  parse::split(input, " ", parts);
   const size_t len = parts.size();
   dim_t min_sport = min_port;
   dim_t max_sport = max_port;
@@ -324,9 +326,9 @@ void parse::parse_rules(const StrVector& input, RuleVector& rules) {
     const std::string& line = input[i];
     if (line[0] == '#' || line[0] == ':' || line[0] == '*' || line == "COMMIT")
       continue;
-    StrVector parts;
-    parse::split(input[i], " ", parts);
-    rules.push_back(parse::parse_rule(parts));
+    ////////StrVector parts;
+    ////parse::split(input[i], " ", parts);
+    rules.push_back(parse::parse_rule(input[i]));
   }
 }
 
