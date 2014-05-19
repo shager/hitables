@@ -243,14 +243,14 @@ Rule parse::parse_rule(const std::string& input) {
         min_prot_ = prot;
         max_prot_ = prot;
       } catch (const int code) {
-        return Rule();
+        return Rule(input);
       }
 
     } else if (word == "-m") {
       ++i;
       check_index(i, len, "Invalid match specification");
       if (parts[i] != "iprange" && parts[i] != "tcp" && parts[i] != "udp")
-        return Rule();
+        return Rule(input);
 
     } else if (word == "--src" || word == "--dst") {
       ++i;
@@ -294,7 +294,7 @@ Rule parse::parse_rule(const std::string& input) {
       try {
         code = parse::parse_action_code(parts[i]);
       } catch (const int err_code) {
-        return Rule();
+        return Rule(input);
       }
       if (code == JUMP) {
         ++i;
@@ -304,10 +304,10 @@ Rule parse::parse_rule(const std::string& input) {
         action = Action(code);
 
     } else
-      return Rule();
+      return Rule(input);
   }
   if (chain.size() == 0)
-    return Rule();
+    return Rule(input);
 
   // assemble rule from data gathered above
   DimVector dims;
@@ -316,7 +316,7 @@ Rule parse::parse_rule(const std::string& input) {
   dims.push_back(std::make_tuple(min_saddr, max_saddr));
   dims.push_back(std::make_tuple(min_daddr, max_daddr));
   dims.push_back(std::make_tuple(min_prot_, max_prot_));
-  return Rule(action, dims, chain);
+  return Rule(action, dims, chain, input);
 }
 
 

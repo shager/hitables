@@ -18,17 +18,17 @@ using namespace std;
   DimVector rule1_bounds;                         \
   rule1_bounds.push_back(make_tuple(1, 3));       \
   Box rule1_box(rule1_bounds);                    \
-  Rule rule1(DROP, rule1_box);                    \
+  Rule rule1(DROP, rule1_box, "");                    \
                                                   \
   DimVector rule2_bounds;                         \
   rule2_bounds.push_back(make_tuple(4, 7));       \
   Box rule2_box(rule2_bounds);                        \
-  Rule rule2(DROP, rule2_box);                            \
+  Rule rule2(DROP, rule2_box, "");                            \
                                \
   DimVector rule3_bounds;                         \
   rule3_bounds.push_back(make_tuple(8, 10));      \
   Box rule3_box(rule3_bounds);                        \
-  Rule rule3(DROP, rule3_box);                    \
+  Rule rule3(DROP, rule3_box, "");                    \
                                                   \
   node.add_rule(static_cast<const Rule*>(&rule1)); \
   node.add_rule(static_cast<const Rule*>(&rule2)); \
@@ -185,7 +185,7 @@ BOOST_AUTO_TEST_CASE(treenode_cut_small_rules) {
   for (size_t i = 0; i < 10; ++i) {
     DimVector rule_bounds;
     rule_bounds.push_back(make_tuple(i, i));
-    Rule* rule = new Rule(DROP, Box(rule_bounds));
+    Rule* rule = new Rule(DROP, Box(rule_bounds), "");
     node.add_rule(rule);
     rule_pointers.push_back(rule);
   }
@@ -241,7 +241,7 @@ BOOST_AUTO_TEST_CASE(treenode_determine_number_of_cuts) {
   for (size_t i = 0; i < 10; ++i) {
     DimVector rule_bounds;
     rule_bounds.push_back(make_tuple(i, i));
-    Rule* rule = new Rule(DROP, Box(rule_bounds));
+    Rule* rule = new Rule(DROP, Box(rule_bounds), "");
     node2.add_rule(rule);
     rule_pointers.push_back(rule);
   }
@@ -261,13 +261,13 @@ BOOST_AUTO_TEST_CASE(treenode_dim_max_distinct_rules) {
   DimVector rule1_bounds;
   rule1_bounds.push_back(make_tuple(1, 5));
   rule1_bounds.push_back(make_tuple(0, 1));
-  Rule rule1(DROP, Box(rule1_bounds));
+  Rule rule1(DROP, Box(rule1_bounds), "");
   node.add_rule(&rule1);
 
   DimVector rule2_bounds;
   rule2_bounds.push_back(make_tuple(6, 9));
   rule2_bounds.push_back(make_tuple(0, 1));
-  Rule rule2(DROP, Box(rule2_bounds));
+  Rule rule2(DROP, Box(rule2_bounds), "");
   node.add_rule(&rule2);
 
   const size_t dim = node.dim_max_distinct_rules();
@@ -278,13 +278,13 @@ BOOST_AUTO_TEST_CASE(treenode_dim_max_distinct_rules) {
   DimVector rule3_bounds;
   rule3_bounds.push_back(make_tuple(0, 1));
   rule3_bounds.push_back(make_tuple(1, 5));
-  Rule rule3(DROP, Box(rule3_bounds));
+  Rule rule3(DROP, Box(rule3_bounds), "");
   node2.add_rule(&rule3);
 
   DimVector rule4_bounds;
   rule4_bounds.push_back(make_tuple(0, 1));
   rule4_bounds.push_back(make_tuple(6, 9));
-  Rule rule4(DROP, Box(rule4_bounds));
+  Rule rule4(DROP, Box(rule4_bounds), "");
   node2.add_rule(&rule4);
 
   const size_t dim2 = node2.dim_max_distinct_rules();
@@ -301,13 +301,13 @@ BOOST_AUTO_TEST_CASE(treenode_dim_least_max_rules_per_child) {
   DimVector rule1_bounds;
   rule1_bounds.push_back(make_tuple(0, 10));
   rule1_bounds.push_back(make_tuple(1, 1));
-  Rule rule1(DROP, Box(rule1_bounds));
+  Rule rule1(DROP, Box(rule1_bounds), "");
   node.add_rule(&rule1);
 
   DimVector rule2_bounds;
   rule2_bounds.push_back(make_tuple(0, 10));
   rule2_bounds.push_back(make_tuple(8, 8));
-  Rule rule2(DROP, Box(rule2_bounds));
+  Rule rule2(DROP, Box(rule2_bounds), "");
   node.add_rule(&rule2);
 
   const size_t dim = node.dim_least_max_rules_per_child(1);
@@ -335,19 +335,19 @@ BOOST_AUTO_TEST_CASE(treenode_rule_ctor) {
   v1.push_back(make_tuple(1, 3));
   v1.push_back(make_tuple(2, 5));
   Box box1(v1);
-  rules.push_back(Rule(DROP, box1));
+  rules.push_back(Rule(DROP, box1, ""));
 
   DimVector v2;
   v2.push_back(make_tuple(0, 11));
   v2.push_back(make_tuple(5, 15));
   Box box2(v2);
-  rules.push_back(Rule(DROP, box2));
+  rules.push_back(Rule(DROP, box2, ""));
 
   DimVector v3;
   v3.push_back(make_tuple(0, 20));
   v3.push_back(make_tuple(4, 30));
   Box box3(v3);
-  rules.push_back(Rule(DROP, box3));
+  rules.push_back(Rule(DROP, box3, ""));
 
   TreeNode node1(rules, make_tuple(0, 1));
   BOOST_CHECK_EQUAL(node1.num_rules(), 2);
@@ -786,30 +786,30 @@ BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets) {
   parse::compute_relevant_sub_rulesets(rules, 2, domains);
   BOOST_CHECK(domains.empty());
 
-  rules.push_back(Rule()); // 0
-  rules.push_back(Rule()); // 1
+  rules.push_back(Rule("")); // 0
+  rules.push_back(Rule("")); // 1
   parse::compute_relevant_sub_rulesets(rules, 2, domains);
   BOOST_CHECK(domains.empty());
 
   DimVector dims;
   Action action(DROP);
-  rules.push_back(Rule(action, dims, "a")); // 2
-  rules.push_back(Rule(action, dims, "a")); // 3
-  rules.push_back(Rule()); // 4
+  rules.push_back(Rule(action, dims, "a", "")); // 2
+  rules.push_back(Rule(action, dims, "a", "")); // 3
+  rules.push_back(Rule("")); // 4
   parse::compute_relevant_sub_rulesets(rules, 2, domains);
   BOOST_CHECK_EQUAL(domains.size(), 1);
   BOOST_CHECK(domains[0] == make_tuple(2, 3));
   domains.clear();
 
-  rules.push_back(Rule());  // 5
-  rules.push_back(Rule(action, dims, "a")); // 6
-  rules.push_back(Rule(action, dims, "a")); // 7
-  rules.push_back(Rule());  // 8
-  rules.push_back(Rule(action, dims, "a"));  // 9
-  rules.push_back(Rule());  // 10
-  rules.push_back(Rule(action, dims, "a")); // 11
-  rules.push_back(Rule(action, dims, "a")); // 12
-  rules.push_back(Rule(action, dims, "a")); // 13
+  rules.push_back(Rule(""));  // 5
+  rules.push_back(Rule(action, dims, "a", "")); // 6
+  rules.push_back(Rule(action, dims, "a", "")); // 7
+  rules.push_back(Rule(""));  // 8
+  rules.push_back(Rule(action, dims, "a", ""));  // 9
+  rules.push_back(Rule(""));  // 10
+  rules.push_back(Rule(action, dims, "a", "")); // 11
+  rules.push_back(Rule(action, dims, "a", "")); // 12
+  rules.push_back(Rule(action, dims, "a", "")); // 13
   parse::compute_relevant_sub_rulesets(rules, 2, domains);
   BOOST_CHECK_EQUAL(domains.size(), 3);
   BOOST_CHECK(domains[0] == make_tuple(2, 3));
@@ -818,7 +818,7 @@ BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets) {
   domains.clear();
   rules.clear();
 
-  rules.push_back(Rule(action, dims, "a"));
+  rules.push_back(Rule(action, dims, "a", ""));
   parse::compute_relevant_sub_rulesets(rules, 1, domains);
   BOOST_CHECK_EQUAL(domains.size(), 1);
   BOOST_CHECK(domains[0] == make_tuple(0, 0));
@@ -828,9 +828,9 @@ BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets) {
   parse::compute_relevant_sub_rulesets(rules, 1, domains);
   BOOST_CHECK(domains.empty());
 
-  rules.push_back(Rule(action, dims, "a"));
-  rules.push_back(Rule(action, dims, "a"));
-  rules.push_back(Rule(action, dims, "a"));
+  rules.push_back(Rule(action, dims, "a", ""));
+  rules.push_back(Rule(action, dims, "a", ""));
+  rules.push_back(Rule(action, dims, "a", ""));
   parse::compute_relevant_sub_rulesets(rules, 4, domains);
   BOOST_CHECK(domains.empty());
   parse::compute_relevant_sub_rulesets(rules, 3, domains);

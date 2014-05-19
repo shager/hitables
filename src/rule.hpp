@@ -20,13 +20,16 @@ const dim_t max_prot = 255;
 
 class Rule {
 public:
-  Rule(const Action& action, const Box& box) : action_(action), box_(box),
-      applicable_(true), chain_("") {}
+  Rule(const Action& action, const Box& box, const std::string& src) 
+      : action_(action), box_(box), applicable_(true), chain_(""), src_(src) {}
 
-  Rule(const Action& action, const DimVector& dims, const std::string& chain)
-      : action_(action), box_(dims), applicable_(true), chain_(chain) {}
+  Rule(const Action& action, const DimVector& dims, const std::string& chain,
+      const std::string& src)
+      : action_(action), box_(dims), applicable_(true), chain_(chain),
+      src_(src) {}
 
-  Rule() : action_(Action(NONE)), box_(DimVector()), applicable_(false) {}
+  Rule(const std::string& src) : action_(Action(NONE)), box_(DimVector()),
+      applicable_(false), src_(src) {}
 
   inline const Action& action() const {return action_;}
 
@@ -43,11 +46,14 @@ public:
 
   inline bool operator!=(const Rule& other) const {return !(*this == other);}
 
+  inline const std::string& src() const {return src_;}
+
 private:
   const Action action_;
   Box box_;
   const bool applicable_;
   std::string chain_;
+  std::string src_;
 };
 
 typedef std::vector<Rule> RuleVector;
