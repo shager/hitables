@@ -3,6 +3,7 @@
 #include "parse.hpp"
 #include "arg.hpp"
 #include <cstdio>
+#include "emit.hpp"
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE hitables_tests
@@ -1048,3 +1049,33 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector_verbose) {
   args = Arguments::parse_arg_vector(v);
   BOOST_CHECK(!args.verbose());
 }
+
+/*****************************************************************************
+ *                        E M I T T E R   T E S T S                          *
+ *****************************************************************************/
+
+BOOST_AUTO_TEST_CASE(emit_emit_non_applicable_rule) {
+  Emitter e(NodeVector(), RuleVector(), DomainVector(), false, 0);
+  stringstream ss;
+  e.emit_non_applicable_rule(Rule("abc"), ss);
+  BOOST_CHECK_EQUAL(ss.str(), "abc\n");
+}
+
+
+BOOST_AUTO_TEST_CASE(emit_emit_prefix) {
+  Emitter e(NodeVector(), RuleVector(), DomainVector(), false, 0);
+  stringstream ss, out;
+  ss << "*filter\n" << ":INPUT ACCEPT [0:0]\n" << ":FORWARD ACCEPT [0:0]\n"
+      << ":OUTPUT ACCEPT [0:0]\n";
+  e.emit_prefix(out);
+  BOOST_CHECK_EQUAL(ss.str(), out.str());
+}
+
+
+BOOST_AUTO_TEST_CASE(emit_emit_suffix) {
+  Emitter e(NodeVector(), RuleVector(), DomainVector(), false, 0);
+  stringstream out;
+  e.emit_suffix(out);
+  BOOST_CHECK_EQUAL("COMMIT\n", out.str());
+}
+
