@@ -106,6 +106,8 @@ public:
   inline std::vector<TreeNode>& children() {return children_;}
   inline const std::vector<const Rule*> rules() const {return rules_;}
   inline size_t cut_dim() const {return cut_dim_;}
+  inline const std::string& chain() const {return rules_[0]->chain();}
+  inline bool is_leaf() const {return children_.empty();}
 
 private:
   Box box_;

@@ -8,9 +8,9 @@ class Emitter {
 public:
 
   Emitter(const NodeVector& trees, const RuleVector& rules,
-      const DomainVector& domains, const bool chain_reuse, const size_t search)
+      const DomainVector& domains, const size_t search)
       : trees_(trees), rules_(rules), domains_(domains),
-      chain_reuse_(chain_reuse), search_(search) {}
+      search_(search) {}
 
   /*
    * Computes the iptables representation of the given HiTables instance and
@@ -28,13 +28,22 @@ public:
     out << rule.src() << std::endl;
   }
 
-  void emit_tree(const TreeNode& tree, std::stringstream& out);
+  void emit_tree(TreeNode& tree, std::stringstream& out);
+
+  void emit_tree_linear_search(TreeNode& tree,
+      const std::string& next_chain, std::stringstream& out);
+
+  void emit_simple_linear_dispatch(const TreeNode* node,
+      const std::string& chain,
+      const size_t chain_count, std::stringstream& out);
+
+  void emit_leaf(const TreeNode* node, const std::string& current_chain,
+      const std::string& next_chain, std::stringstream& out);
 
 private:
   NodeVector trees_;
   RuleVector rules_;
   DomainVector domains_;
-  const bool chain_reuse_;
   const size_t search_;
 };
 

@@ -34,3 +34,13 @@ bool Rule::operator==(const Rule& other) const {
       &&  (applicable_ == other.applicable())
       &&  (chain_ == other.chain()));
 }
+
+std::string Rule::src_with_patched_chain(const std::string& chain) const {
+  const size_t start = src_.find(chain_);
+  const size_t end = src_.find(" ", start + 2);
+  std::stringstream ss;
+  ss << src_.substr(0, start);
+  ss << chain << " ";
+  ss << src_.substr(end + 1);
+  return ss.str();
+}

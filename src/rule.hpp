@@ -3,6 +3,7 @@
 
 #include "box.hpp"
 #include "action.hpp"
+#include <sstream>
   
 const dim_t ICMP = 1;
 const dim_t TCP = 6;
@@ -47,6 +48,8 @@ public:
   inline bool operator!=(const Rule& other) const {return !(*this == other);}
 
   inline const std::string& src() const {return src_;}
+
+  std::string src_with_patched_chain(const std::string& chain) const;
 
 private:
   const Action action_;

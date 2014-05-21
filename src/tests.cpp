@@ -1055,7 +1055,7 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector_verbose) {
  *****************************************************************************/
 
 BOOST_AUTO_TEST_CASE(emit_emit_non_applicable_rule) {
-  Emitter e(NodeVector(), RuleVector(), DomainVector(), false, 0);
+  Emitter e(NodeVector(), RuleVector(), DomainVector(), 0);
   stringstream ss;
   e.emit_non_applicable_rule(Rule("abc"), ss);
   BOOST_CHECK_EQUAL(ss.str(), "abc\n");
@@ -1063,7 +1063,7 @@ BOOST_AUTO_TEST_CASE(emit_emit_non_applicable_rule) {
 
 
 BOOST_AUTO_TEST_CASE(emit_emit_prefix) {
-  Emitter e(NodeVector(), RuleVector(), DomainVector(), false, 0);
+  Emitter e(NodeVector(), RuleVector(), DomainVector(), 0);
   stringstream ss, out;
   ss << "*filter\n" << ":INPUT ACCEPT [0:0]\n" << ":FORWARD ACCEPT [0:0]\n"
       << ":OUTPUT ACCEPT [0:0]\n";
@@ -1073,9 +1073,40 @@ BOOST_AUTO_TEST_CASE(emit_emit_prefix) {
 
 
 BOOST_AUTO_TEST_CASE(emit_emit_suffix) {
-  Emitter e(NodeVector(), RuleVector(), DomainVector(), false, 0);
+  Emitter e(NodeVector(), RuleVector(), DomainVector(), 0);
   stringstream out;
   e.emit_suffix(out);
   BOOST_CHECK_EQUAL("COMMIT\n", out.str());
 }
 
+
+BOOST_AUTO_TEST_CASE(emit_emit_leaf) {
+  RuleVector rules;
+  rules.push_back(parse::parse_rule("-A CHAIN --src 1.2.3.4 -j DROP"));
+  rules.push_back(parse::parse_rule("-A CHAIN --src 1.2.3.5 -j DROP"));
+  rules.push_back(parse::parse_rule("-A CHAIN --src 1.2.3.6 -j DROP"));
+  DomainTuple domain(make_tuple(0, 2));
+  TreeNode tree(rules, domain);
+  Emitter emitter(NodeVector(), RuleVector(), DomainVector(),
+      Arguments::SEARCH_LINEAR);
+  stringstream out;
+  emitter.emit_leaf(&tree, "CURRENT_CHAIN", "NEXT_CHAIN", out);
+
+  stringstream expect;
+  expect << "# leaf node" << endl
+      << "-A CURRENT_CHAIN --src 1.2.3.4 -j DROP" << endl 
+      << "-A CURRENT_CHAIN --src 1.2.3.5 -j DROP" << endl
+      << "-A CURRENT_CHAIN --src 1.2.3.6 -j DROP" << endl
+      << "-A CURRENT_CHAIN -j NEXT_CHAIN" << endl << endl;
+  BOOST_CHECK_EQUAL(out.str(), expect.str());
+}
+
+/*****************************************************************************
+ *                           R U L E   T E S T S                             *
+ *****************************************************************************/
+
+BOOST_AUTO_TEST_CASE(rule_src_with_patched_chain) {
+  Rule rule(parse::parse_rule("-A abc -j DROP"));
+  BOOST_CHECK_EQUAL(rule.src_with_patched_chain("blablub"),
+      std::string("-A blablub -j DROP"));
+}
