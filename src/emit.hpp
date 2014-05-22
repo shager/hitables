@@ -31,17 +31,21 @@ public:
 
   void emit_tree(TreeNode& tree, std::stringstream& out);
 
-  void emit_tree_linear_search(TreeNode& tree,
-      const std::string& next_chain, std::stringstream& out);
+  void emit_tree_linear_search(TreeNode& tree, const std::string& chain,
+  const size_t tree_id, const std::string& next_chain,
+  std::stringstream& out);
 
-  void emit_simple_linear_dispatch(const TreeNode* node,
-      const std::string& chain,
+  void emit_simple_linear_dispatch(TreeNode* node,
+      const std::string& chain, const size_t tree_id,
       const size_t chain_count, std::stringstream& out);
 
   void emit_leaf(const TreeNode* node, const std::string& current_chain,
       const std::string& next_chain, std::stringstream& out);
 
   static std::string num_to_ip(const dim_t ip_num);
+
+  static std::string build_chain_name(const std::string& chain,
+      const size_t tree_id, const size_t chain_id);
 
 private:
   NodeVector trees_;

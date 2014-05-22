@@ -101,12 +101,19 @@ public:
       const size_t dim_choice);
 
   inline size_t num_rules() const {return rules_.size();}
+
   inline void add_rule(const Rule* rule) {rules_.push_back(rule);}
+
   inline const Box& box() const {return box_;}
+
   inline std::vector<TreeNode>& children() {return children_;}
+
   inline const std::vector<const Rule*> rules() const {return rules_;}
+
   inline size_t cut_dim() const {return cut_dim_;}
+
   inline const std::string& chain() const {return rules_[0]->chain();}
+
   inline bool is_leaf() const {return children_.empty();}
 
 private:
