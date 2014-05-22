@@ -70,34 +70,49 @@ int main(int argc, char* argv[]) {
 
   // parse rules
   RuleVector rules;
+  ChainVector chains;
   start = Clock::now();
   parse::parse_rules(input, rules);
+  parse::group_rules_by_chain(rules, chains);
   end = Clock::now();
   time_span = duration(start, end);
   const size_t num_rules = rules.size();
-  msg << "\nParsed " << num_rules << " rule" << (num_rules > 1 ? "s" : "")
-      << " in " << time_span << " seconds";
+  const size_t num_chains = chains.size();
+  rules.clear();
+  msg << "\nParsed " << num_rules << " rule" << (num_rules != 1 ? "s" : "")
+      << " (" << num_chains << " chain" << (num_chains != 1 ? "s" : "")
+      << ") in " << time_span << " seconds";
   out_msg(msg.str(), args.verbose());
 
   // extract relevant sub-rulesets
-  DomainVector domains;
+  std::vector<DomainVector> chain_domains;
   start = Clock::now();
-  parse::compute_relevant_sub_rulesets(rules, args.min_rules(), domains);
+  size_t num_domains = 0;
+  for (size_t i = 0; i < num_chains; ++i) {
+    chain_domains.push_back(DomainVector());
+    DomainVector& domains = chain_domains[chain_domains.size() - 1];;
+    parse::compute_relevant_sub_rulesets(chains[i], args.min_rules(), domains);
+    num_domains += domains.size();
+  }
   end = Clock::now();
   time_span = duration(start, end);
-  const size_t num_domains = domains.size();
   std::stringstream domain_msg;
   domain_msg << "Extracted " << num_domains << " sub-ruleset"
-      << (num_domains > 1 ? "s" : "") << " in " << time_span << " seconds";
+      << (num_domains != 1 ? "s" : "") << " in " << time_span << " seconds";
   out_msg(domain_msg.str(), args.verbose());
 
   // perform HiCuts transformation
+  std::vector<std::vector<TreeNode*>> chain_trees;
   const size_t dim_choice = args.dim_choice();
   start = Clock::now();
-  for (size_t i = 0; i < num_domains; ++i) {
-    const DomainTuple& domain = domains[i];
-    TreeNode tree_root(rules, domain);
-    tree_root.build_tree(args.spfac(), args.binth(), dim_choice);
+  for (size_t i_chain = 0; i_chain < num_chains; ++i_chain) {
+    chain_trees.push_back(std::vector<TreeNode*>());
+    for (size_t i = 0; i < num_domains; ++i) {
+      const DomainTuple& domain = chain_domains[i_chain][i];
+      TreeNode* tree_root = new TreeNode(chains[i_chain], domain);
+      tree_root->build_tree(args.spfac(), args.binth(), dim_choice);
+      chain_trees[i_chain].push_back(tree_root);
+    }
   }
   end = Clock::now();
   time_span = duration(start, end);
@@ -105,6 +120,14 @@ int main(int argc, char* argv[]) {
   hicuts_msg << "Performed HiCuts transformation in " << time_span
       << " seconds";
   out_msg(hicuts_msg.str(), args.verbose());
+
+  // cleanup
+  for (size_t i = 0; i < num_chains; ++i) {
+    std::vector<TreeNode*>& tree_nodes = chain_trees[i];
+    const size_t num_trees = tree_nodes.size();
+    for (size_t j = 0; j < num_trees; ++j)
+      delete tree_nodes[j];
+  }
 
   out_msg("", args.verbose());
   return EXIT_SUCCESS;

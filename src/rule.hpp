@@ -60,6 +60,7 @@ private:
 };
 
 typedef std::vector<Rule> RuleVector;
+typedef std::vector<RuleVector> ChainVector;
 typedef std::tuple<size_t, size_t> DomainTuple;
 typedef std::vector<DomainTuple> DomainVector;
 

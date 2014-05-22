@@ -66,18 +66,6 @@ int parse::file_read_lines(const std::string& path, StrVector& lines) {
 }
 
 
-int parse::parse_ruleset(const StrVector& lines, RuleVector& rules) {
-  const size_t num_lines = lines.size();
-  for (size_t i = 0; i < num_lines; ++i) {
-    const std::string& line(lines[i]);
-    const char first = line[0];
-    if (first == ':' || first == '*' || first == '#')
-      continue;
-  }
-  return 0;
-}
-
-
 inline bool is_num(const char c) {
   return c >= 48 && c <= 57;
 }
@@ -355,4 +343,25 @@ void parse::compute_relevant_sub_rulesets(const RuleVector& rules,
   }
   if (have_start && (len - start >= min_rules))
     domains.push_back(std::make_tuple(start, len - 1));
+}
+
+
+void parse::group_rules_by_chain(const RuleVector& rules,
+    ChainVector& chains) {
+
+  std::unordered_map<std::string, size_t> chain_map;
+  const size_t num_rules = rules.size();
+  for (size_t i = 0; i < num_rules; ++i) {
+    const Rule& rule = rules[i];
+    const std::string& chain = rule.chain();
+    auto it = chain_map.find(chain);
+    if (it != chain_map.end())
+      chains[it->second].push_back(rule);
+    else {
+      RuleVector chain_rules;
+      chain_rules.push_back(rule);
+      chain_map[chain] = chains.size();
+      chains.push_back(chain_rules);
+    }
+  }
 }

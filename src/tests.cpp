@@ -467,18 +467,6 @@ BOOST_AUTO_TEST_CASE(parse_file_read_lines) {
   BOOST_CHECK_EQUAL(lines.size(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(parse_parse_ruleset_simple) {
-  StrVector lines;
-  lines.push_back("*filter");
-  lines.push_back(":INPUT ACCEPT [0:0]");
-  lines.push_back(":FORWARD ACCEPT [0:0]");
-  lines.push_back(":OUTPUT ACCEPT [0:0]");
-  lines.push_back("COMMIT");
-  RuleVector rules;
-  BOOST_CHECK_EQUAL(parse::parse_ruleset(lines, rules), 0);
-  BOOST_CHECK(rules.empty());
-}
-
 
 BOOST_AUTO_TEST_CASE(parse_parse_ip) {
   BOOST_CHECK_EQUAL(parse::parse_ip("1.2.3.4"), 16909060);
@@ -837,6 +825,23 @@ BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets) {
   parse::compute_relevant_sub_rulesets(rules, 3, domains);
   BOOST_CHECK_EQUAL(domains.size(), 1);
   BOOST_CHECK(domains[0] == make_tuple(0, 2));
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_group_rules_by_chain) {
+  RuleVector rules;
+  rules.push_back(parse::parse_rule("-A c1 -j DROP"));
+  rules.push_back(parse::parse_rule("-A c2 -j DROP"));
+  rules.push_back(parse::parse_rule("-A c2 -j DROP"));
+  rules.push_back(parse::parse_rule("-A c3 -j DROP"));
+  rules.push_back(parse::parse_rule("-A c3 -j DROP"));
+  rules.push_back(parse::parse_rule("-A c3 -j DROP"));
+  ChainVector chains;
+  parse::group_rules_by_chain(rules, chains);
+  BOOST_CHECK_EQUAL(chains.size(), 3);
+  BOOST_CHECK_EQUAL(chains[0].size(), 1);
+  BOOST_CHECK_EQUAL(chains[1].size(), 2);
+  BOOST_CHECK_EQUAL(chains[2].size(), 3);
 }
 
 /*****************************************************************************

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <cstdint>
 #include "rule.hpp"
+#include <unordered_map>
 
 typedef std::vector<std::string> StrVector;
 
@@ -22,13 +23,6 @@ namespace parse {
    * Returns 0 on success and 1 in case of a non-accessible file.
    */
   int file_read_lines(const std::string& path, StrVector& lines);
-
-  /*
-   * Parses an iptables-save compliant ruleset and groups the rules to parts
-   * amenable for HiCuts processing.
-   * Returns 0 on success and 1 in case of parse errors.
-   */
-  int parse_ruleset(const StrVector& lines, RuleVector& rules);
 
   /*
    * Parses an IPv4 address in dotted decimal notation.
@@ -90,6 +84,12 @@ namespace parse {
    * Parses the given input string into a vector of rule objects.
    */
   void parse_rules(const StrVector& input, RuleVector& rules);
+
+  /*
+   * Groups the given rules according to their chains.
+   * The result is a vector of rulevectors.
+   */
+  void group_rules_by_chain(const RuleVector& rules, ChainVector& chains);
 
   /*
    * Computes a vector of size_t tuples that indicate the start and end indices
