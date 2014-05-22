@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
   size_t num_domains = 0;
   for (size_t i = 0; i < num_chains; ++i) {
     chain_domains.push_back(DomainVector());
-    DomainVector& domains = chain_domains[chain_domains.size() - 1];;
+    DomainVector& domains = chain_domains[i];
     parse::compute_relevant_sub_rulesets(chains[i], args.min_rules(), domains);
     num_domains += domains.size();
   }
