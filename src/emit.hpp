@@ -40,6 +40,8 @@ public:
   void emit_leaf(const TreeNode* node, const std::string& current_chain,
       const std::string& next_chain, std::stringstream& out);
 
+  static std::string num_to_ip(const dim_t ip_num);
+
 private:
   NodeVector trees_;
   RuleVector rules_;

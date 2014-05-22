@@ -1110,6 +1110,15 @@ BOOST_AUTO_TEST_CASE(emit_emit_leaf) {
   BOOST_CHECK_EQUAL(out.str(), expect.str());
 }
 
+
+BOOST_AUTO_TEST_CASE(emit_num_to_ip) {
+  BOOST_CHECK_EQUAL(Emitter::num_to_ip(0), "0.0.0.0");
+  BOOST_CHECK_EQUAL(Emitter::num_to_ip(1), "0.0.0.1");
+  BOOST_CHECK_EQUAL(Emitter::num_to_ip(256), "0.0.1.0");
+  BOOST_CHECK_EQUAL(Emitter::num_to_ip(16909060), "1.2.3.4");
+  BOOST_CHECK_EQUAL(Emitter::num_to_ip(4294967295), "255.255.255.255");
+}
+
 /*****************************************************************************
  *                           R U L E   T E S T S                             *
  *****************************************************************************/

@@ -97,3 +97,13 @@ void Emitter::emit_prefix(std::stringstream& out) {
 void Emitter::emit_suffix(std::stringstream& out) {
   out << "COMMIT" << std::endl;
 }
+
+
+std::string Emitter::num_to_ip(const dim_t ip_num) {
+  std::stringstream ss;
+  ss  << ((ip_num & 0xFF000000) >> 24) << "."
+      << ((ip_num & 0x00FF0000) >> 16) << "."
+      << ((ip_num & 0x0000FF00) >>  8) << "."
+      << (ip_num & 0x000000FF);
+  return ss.str();
+}
