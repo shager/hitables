@@ -294,6 +294,9 @@ Rule* parse::parse_rule(const std::string& input) {
   }
   if (chain.size() == 0)
     return new Rule(input);
+  // check if a transport layer protocol is specified
+  if (min_prot_ == min_prot && max_prot_ == max_prot)
+    return new Rule(input);
 
   // assemble rule from data gathered above
   DimVector dims;

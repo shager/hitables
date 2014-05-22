@@ -701,6 +701,10 @@ BOOST_AUTO_TEST_CASE(parse_parse_rule) {
   rule = parse::parse_rule("-A INPUT -p udp -m iprange --src-range 117.159.160.68-117.159.164.152 --dst-range 253.59.172.172-253.59.175.252 -m udp --sport 38435:39668 --dport 14309:14373 -j ACCEPT");
   BOOST_CHECK(rule->applicable());
   delete rule;
+
+  rule = parse::parse_rule("-A INPUT --src 1.2.3.4 -j DROP");
+  BOOST_CHECK(!rule->applicable());
+  delete rule;
 }
 
 
@@ -727,22 +731,22 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules_values) {
 
 
 BOOST_AUTO_TEST_CASE(parse_parse_rules_prefixes) {
-  Rule* rule = parse::parse_rule("-A INPUT --src 0.0.0.5/32 --dst 0.0.0.3/31 -j DROP");
+  Rule* rule = parse::parse_rule("-A INPUT --src 0.0.0.5/32 --dst 0.0.0.3/31 -p udp --sport 1:2 --dport 3:4 -j DROP");
   BOOST_CHECK(rule->applicable());
   BOOST_CHECK(rule->action().code() == DROP);
   // check rule size
   const DimVector& bounds = rule->box().box_bounds();
   BOOST_CHECK_EQUAL(bounds.size(), 5);
-  BOOST_CHECK(get<0>(bounds[0]) == min_port);
-  BOOST_CHECK(get<1>(bounds[0]) == max_port);
-  BOOST_CHECK(get<0>(bounds[1]) == min_port);
-  BOOST_CHECK(get<1>(bounds[1]) == max_port);
+  BOOST_CHECK(get<0>(bounds[0]) == 1);
+  BOOST_CHECK(get<1>(bounds[0]) == 2);
+  BOOST_CHECK(get<0>(bounds[1]) == 3);
+  BOOST_CHECK(get<1>(bounds[1]) == 4);
   BOOST_CHECK(get<0>(bounds[2]) == 5);
   BOOST_CHECK(get<1>(bounds[2]) == 5);
   BOOST_CHECK(get<0>(bounds[3]) == 2);
   BOOST_CHECK(get<1>(bounds[3]) == 3);
-  BOOST_CHECK(get<0>(bounds[4]) == min_prot);
-  BOOST_CHECK(get<1>(bounds[4]) == max_prot);
+  BOOST_CHECK(get<0>(bounds[4]) == UDP);
+  BOOST_CHECK(get<1>(bounds[4]) == UDP);
   BOOST_CHECK(rule->chain() == "INPUT");
   delete rule;
 }
@@ -843,12 +847,12 @@ BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets) {
 
 BOOST_AUTO_TEST_CASE(parse_group_rules_by_chain) {
   RuleVector rules;
-  rules.push_back(parse::parse_rule("-A c1 -j DROP"));
-  rules.push_back(parse::parse_rule("-A c2 -j DROP"));
-  rules.push_back(parse::parse_rule("-A c2 -j DROP"));
-  rules.push_back(parse::parse_rule("-A c3 -j DROP"));
-  rules.push_back(parse::parse_rule("-A c3 -j DROP"));
-  rules.push_back(parse::parse_rule("-A c3 -j DROP"));
+  rules.push_back(parse::parse_rule("-A c1 -p udp -j DROP"));
+  rules.push_back(parse::parse_rule("-A c2 -p udp -j DROP"));
+  rules.push_back(parse::parse_rule("-A c2 -p udp -j DROP"));
+  rules.push_back(parse::parse_rule("-A c3 -p udp -j DROP"));
+  rules.push_back(parse::parse_rule("-A c3 -p udp -j DROP"));
+  rules.push_back(parse::parse_rule("-A c3 -p udp -j DROP"));
   ChainVector chains;
   parse::group_rules_by_chain(rules, chains);
   BOOST_CHECK_EQUAL(chains.size(), 3);
@@ -1103,9 +1107,9 @@ BOOST_AUTO_TEST_CASE(emit_emit_suffix) {
 
 BOOST_AUTO_TEST_CASE(emit_emit_leaf) {
   RuleVector rules;
-  rules.push_back(parse::parse_rule("-A CHAIN --src 1.2.3.4 -j DROP"));
-  rules.push_back(parse::parse_rule("-A CHAIN --src 1.2.3.5 -j DROP"));
-  rules.push_back(parse::parse_rule("-A CHAIN --src 1.2.3.6 -j DROP"));
+  rules.push_back(parse::parse_rule("-A CHAIN -p tcp --sport 1 -j DROP"));
+  rules.push_back(parse::parse_rule("-A CHAIN -p tcp --sport 1 -j DROP"));
+  rules.push_back(parse::parse_rule("-A CHAIN -p tcp --sport 1 -j DROP"));
   DomainTuple domain(make_tuple(0, 2));
   TreeNode tree(rules, domain);
   Emitter emitter(NodeVector(), RuleVector(), DomainVector(),
@@ -1115,9 +1119,9 @@ BOOST_AUTO_TEST_CASE(emit_emit_leaf) {
 
   stringstream expect;
   expect << "# leaf node" << endl
-      << "-A CURRENT_CHAIN --src 1.2.3.4 -j DROP" << endl 
-      << "-A CURRENT_CHAIN --src 1.2.3.5 -j DROP" << endl
-      << "-A CURRENT_CHAIN --src 1.2.3.6 -j DROP" << endl
+      << "-A CURRENT_CHAIN -p tcp --sport 1 -j DROP" << endl 
+      << "-A CURRENT_CHAIN -p tcp --sport 1 -j DROP" << endl
+      << "-A CURRENT_CHAIN -p tcp --sport 1 -j DROP" << endl
       << "-A CURRENT_CHAIN -j NEXT_CHAIN" << endl << endl;
   BOOST_CHECK_EQUAL(out.str(), expect.str());
   Rule::delete_rules(rules);
@@ -1137,8 +1141,8 @@ BOOST_AUTO_TEST_CASE(emit_num_to_ip) {
  *****************************************************************************/
 
 BOOST_AUTO_TEST_CASE(rule_src_with_patched_chain) {
-  Rule* rule = parse::parse_rule("-A abc -j DROP");
+  Rule* rule = parse::parse_rule("-A abc -p tcp -j DROP");
   BOOST_CHECK_EQUAL(rule->src_with_patched_chain("blablub"),
-      std::string("-A blablub -j DROP"));
+      std::string("-A blablub -p tcp -j DROP"));
   delete rule;
 }
