@@ -2,6 +2,7 @@
 #define EMIT_HPP 1
 
 #include <cstdlib>
+#include <cstdio>
 #include "treenode.hpp"
 
 class Emitter {
