@@ -23,10 +23,10 @@ public:
 
   void emit_suffix(std::stringstream& out);
 
-  inline void emit_non_applicable_rule(const Rule& rule,
+  inline void emit_non_applicable_rule(const Rule* rule,
       std::stringstream& out) {
 
-    out << rule.src() << std::endl;
+    out << rule->src() << std::endl;
   }
 
   void emit_tree(TreeNode& tree, std::stringstream& out);

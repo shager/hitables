@@ -44,3 +44,10 @@ std::string Rule::src_with_patched_chain(const std::string& chain) const {
   ss << src_.substr(end + 1);
   return ss.str();
 }
+
+
+void Rule::delete_rules(RuleVector& rules) {
+  const size_t num_rules = rules.size();
+  for (size_t i = 0; i < num_rules; ++i)
+    delete rules[i];
+}

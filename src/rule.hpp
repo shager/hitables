@@ -19,6 +19,13 @@ const dim_t max_ip = UINT32_MAX;
 const dim_t min_prot = 0;
 const dim_t max_prot = 255;
 
+class Rule;
+
+typedef std::vector<Rule*> RuleVector;
+typedef std::vector<RuleVector> ChainVector;
+typedef std::tuple<size_t, size_t> DomainTuple;
+typedef std::vector<DomainTuple> DomainVector;
+
 class Rule {
 public:
   Rule(const Action& action, const Box& box, const std::string& src) 
@@ -51,6 +58,8 @@ public:
 
   std::string src_with_patched_chain(const std::string& chain) const;
 
+  static void delete_rules(RuleVector& rules);
+
 private:
   const Action action_;
   Box box_;
@@ -58,10 +67,5 @@ private:
   std::string chain_;
   std::string src_;
 };
-
-typedef std::vector<Rule> RuleVector;
-typedef std::vector<RuleVector> ChainVector;
-typedef std::tuple<size_t, size_t> DomainTuple;
-typedef std::vector<DomainTuple> DomainVector;
 
 #endif // HITABLES_RULE_HPP

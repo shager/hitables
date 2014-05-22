@@ -197,7 +197,7 @@ inline void check_index(const size_t i, const size_t len,
 }
 
 
-Rule parse::parse_rule(const std::string& input) {
+Rule* parse::parse_rule(const std::string& input) {
   StrVector parts;
   parse::split(input, " ", parts);
   const size_t len = parts.size();
@@ -229,14 +229,14 @@ Rule parse::parse_rule(const std::string& input) {
         min_prot_ = prot;
         max_prot_ = prot;
       } catch (const int code) {
-        return Rule(input);
+        return new Rule(input);
       }
 
     } else if (word == "-m") {
       ++i;
       check_index(i, len, "Invalid match specification");
       if (parts[i] != "iprange" && parts[i] != "tcp" && parts[i] != "udp")
-        return Rule(input);
+        return new Rule(input);
 
     } else if (word == "--src" || word == "--dst") {
       ++i;
@@ -280,7 +280,7 @@ Rule parse::parse_rule(const std::string& input) {
       try {
         code = parse::parse_action_code(parts[i]);
       } catch (const int err_code) {
-        return Rule(input);
+        return new Rule(input);
       }
       if (code == JUMP) {
         ++i;
@@ -290,10 +290,10 @@ Rule parse::parse_rule(const std::string& input) {
         action = Action(code);
 
     } else
-      return Rule(input);
+      return new Rule(input);
   }
   if (chain.size() == 0)
-    return Rule(input);
+    return new Rule(input);
 
   // assemble rule from data gathered above
   DimVector dims;
@@ -302,7 +302,7 @@ Rule parse::parse_rule(const std::string& input) {
   dims.push_back(std::make_tuple(min_saddr, max_saddr));
   dims.push_back(std::make_tuple(min_daddr, max_daddr));
   dims.push_back(std::make_tuple(min_prot_, max_prot_));
-  return Rule(action, dims, chain, input);
+  return new Rule(action, dims, chain, input);
 }
 
 
@@ -324,8 +324,8 @@ void parse::compute_relevant_sub_rulesets(const RuleVector& rules,
   bool have_start = false;
   size_t start;
   for (size_t i = 0; i < len; ++i) {
-    const Rule& rule = rules[i];
-    const bool applicable = rule.applicable();
+    const Rule* rule = rules[i];
+    const bool applicable = rule->applicable();
     if (applicable) {
       if (!have_start) {
         have_start = true;
@@ -350,8 +350,8 @@ void parse::group_rules_by_chain(const RuleVector& rules,
   std::unordered_map<std::string, size_t> chain_map;
   const size_t num_rules = rules.size();
   for (size_t i = 0; i < num_rules; ++i) {
-    const Rule& rule = rules[i];
-    const std::string& chain = rule.chain();
+    Rule* rule = rules[i];
+    const std::string& chain = rule->chain();
     auto it = chain_map.find(chain);
     if (it != chain_map.end())
       chains[it->second].push_back(rule);

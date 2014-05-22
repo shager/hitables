@@ -328,7 +328,6 @@ BOOST_AUTO_TEST_CASE(treenode_random_dim) {
   }
 }
 
-#include <iostream>
 
 BOOST_AUTO_TEST_CASE(treenode_rule_ctor) {
   RuleVector rules;
@@ -336,19 +335,19 @@ BOOST_AUTO_TEST_CASE(treenode_rule_ctor) {
   v1.push_back(make_tuple(1, 3));
   v1.push_back(make_tuple(2, 5));
   Box box1(v1);
-  rules.push_back(Rule(DROP, box1, ""));
+  rules.push_back(new Rule(DROP, box1, ""));
 
   DimVector v2;
   v2.push_back(make_tuple(0, 11));
   v2.push_back(make_tuple(5, 15));
   Box box2(v2);
-  rules.push_back(Rule(DROP, box2, ""));
+  rules.push_back(new Rule(DROP, box2, ""));
 
   DimVector v3;
   v3.push_back(make_tuple(0, 20));
   v3.push_back(make_tuple(4, 30));
   Box box3(v3);
-  rules.push_back(Rule(DROP, box3, ""));
+  rules.push_back(new Rule(DROP, box3, ""));
 
   TreeNode node1(rules, make_tuple(0, 1));
   BOOST_CHECK_EQUAL(node1.num_rules(), 2);
@@ -373,6 +372,9 @@ BOOST_AUTO_TEST_CASE(treenode_rule_ctor) {
   db3.push_back(make_tuple(2, 30));
   Box bounding_box3(db3);
   BOOST_CHECK(node3.box() == bounding_box3);
+
+  for (size_t i = 0; i < rules.size(); ++i)
+    delete rules[i];
 }
 
 
@@ -659,53 +661,55 @@ BOOST_AUTO_TEST_CASE(parse_parse_ip_range) {
 
 
 BOOST_AUTO_TEST_CASE(parse_parse_rule) {
-  StrVector parts;
-  BOOST_CHECK(parse::parse_rule("-A INPUT -p udp -j ACCEPT").applicable());
-  parts.clear();
+  Rule* rule;
+  rule = parse::parse_rule("-A INPUT -p udp -j ACCEPT");
+  BOOST_CHECK(rule->applicable());
+  delete rule;
 
-  BOOST_CHECK(parse::parse_rule("-A INPUT -p tcp -j ACCEPT").applicable());
-  parts.clear();
+  rule = parse::parse_rule("-A INPUT -p tcp -j ACCEPT");
+  BOOST_CHECK(rule->applicable());
+  delete rule;
 
-  BOOST_CHECK(parse::parse_rule("-A adasdas -p udp -j ACCEPT").applicable());
-  parts.clear();
+  rule = parse::parse_rule("-A adasdas -p udp -j ACCEPT");
+  BOOST_CHECK(rule->applicable());
+  delete rule;
 
-  BOOST_CHECK(!parse::parse_rule("-p udp -j ACCEPT").applicable());
-  parts.clear();
+  rule = parse::parse_rule("-p udp -j ACCEPT");
+  BOOST_CHECK(!rule->applicable());
+  delete rule;
 
   bool thrown = false;
   try {
-    BOOST_CHECK(!parse::parse_rule("-A INPUT -p asdasd -j ACCEPT").applicable());
+    parse::parse_rule("-A INPUT -p asdasd -j ACCEPT");
   } catch (const string& msg) {
     thrown = true;
   }
   BOOST_CHECK(thrown);
-  parts.clear();
 
-  BOOST_CHECK(!parse::parse_rule("-A INPUT -blabla -j ACCEPT").applicable());
-  parts.clear();
+  rule = parse::parse_rule("-A INPUT -blabla -j ACCEPT");
+  BOOST_CHECK(!rule->applicable());
+  delete rule;
 
   thrown = false;
   try {
-    BOOST_CHECK(!parse::parse_rule("-A INPUT -p tcp -j asdjasdkj").applicable());
+    parse::parse_rule("-A INPUT -p tcp -j asdjasdkj");
   } catch (const string& msg) {
     thrown = true;
   }
   BOOST_CHECK(thrown);
-  parts.clear();
 
-  BOOST_CHECK(parse::parse_rule("-A INPUT -p udp -m iprange --src-range 117.159.160.68-117.159.164.152 --dst-range 253.59.172.172-253.59.175.252 -m udp --sport 38435:39668 --dport 14309:14373 -j ACCEPT").applicable());
-  parts.clear();
+  rule = parse::parse_rule("-A INPUT -p udp -m iprange --src-range 117.159.160.68-117.159.164.152 --dst-range 253.59.172.172-253.59.175.252 -m udp --sport 38435:39668 --dport 14309:14373 -j ACCEPT");
+  BOOST_CHECK(rule->applicable());
+  delete rule;
 }
 
 
 BOOST_AUTO_TEST_CASE(parse_parse_rules_values) {
-  StrVector parts;
-  Rule rule(parse::parse_rule("-A INPUT -p udp -m iprange --src-range 0.0.0.5-0.0.0.6 --dst-range 0.0.0.7-0.0.0.8 -m udp --sport 1:2 --dport 3:4 -j ACCEPT"));
-  parts.clear();
-  BOOST_CHECK(rule.applicable());
-  BOOST_CHECK(rule.action().code() == ACCEPT);
+  Rule* rule = parse::parse_rule("-A INPUT -p udp -m iprange --src-range 0.0.0.5-0.0.0.6 --dst-range 0.0.0.7-0.0.0.8 -m udp --sport 1:2 --dport 3:4 -j ACCEPT");
+  BOOST_CHECK(rule->applicable());
+  BOOST_CHECK(rule->action().code() == ACCEPT);
   // check rule size
-  const DimVector& bounds = rule.box().box_bounds();
+  const DimVector& bounds = rule->box().box_bounds();
   BOOST_CHECK_EQUAL(bounds.size(), 5);
   BOOST_CHECK(get<0>(bounds[0]) == 1);
   BOOST_CHECK(get<1>(bounds[0]) == 2);
@@ -717,18 +721,17 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules_values) {
   BOOST_CHECK(get<1>(bounds[3]) == 8);
   BOOST_CHECK(get<0>(bounds[4]) == UDP);
   BOOST_CHECK(get<1>(bounds[4]) == UDP);
-  BOOST_CHECK(rule.chain() == "INPUT");
+  BOOST_CHECK(rule->chain() == "INPUT");
+  delete rule;
 }
 
 
 BOOST_AUTO_TEST_CASE(parse_parse_rules_prefixes) {
-  StrVector parts;
-  Rule rule(parse::parse_rule("-A INPUT --src 0.0.0.5/32 --dst 0.0.0.3/31 -j DROP"));
-  parts.clear();
-  BOOST_CHECK(rule.applicable());
-  BOOST_CHECK(rule.action().code() == DROP);
+  Rule* rule = parse::parse_rule("-A INPUT --src 0.0.0.5/32 --dst 0.0.0.3/31 -j DROP");
+  BOOST_CHECK(rule->applicable());
+  BOOST_CHECK(rule->action().code() == DROP);
   // check rule size
-  const DimVector& bounds = rule.box().box_bounds();
+  const DimVector& bounds = rule->box().box_bounds();
   BOOST_CHECK_EQUAL(bounds.size(), 5);
   BOOST_CHECK(get<0>(bounds[0]) == min_port);
   BOOST_CHECK(get<1>(bounds[0]) == max_port);
@@ -740,7 +743,8 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules_prefixes) {
   BOOST_CHECK(get<1>(bounds[3]) == 3);
   BOOST_CHECK(get<0>(bounds[4]) == min_prot);
   BOOST_CHECK(get<1>(bounds[4]) == max_prot);
-  BOOST_CHECK(rule.chain() == "INPUT");
+  BOOST_CHECK(rule->chain() == "INPUT");
+  delete rule;
 }
 
 
@@ -753,6 +757,7 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules) {
   RuleVector rules;
   parse::parse_rules(input, rules);
   BOOST_CHECK_EQUAL(rules.size(), 10);
+  Rule::delete_rules(rules);
 }
 
 
@@ -770,6 +775,7 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules_with_meta_info) {
   RuleVector rules;
   parse::parse_rules(input, rules);
   BOOST_CHECK_EQUAL(rules.size(), 1);
+  Rule::delete_rules(rules);
 }
 
 
@@ -779,56 +785,59 @@ BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets) {
   parse::compute_relevant_sub_rulesets(rules, 2, domains);
   BOOST_CHECK(domains.empty());
 
-  rules.push_back(Rule("")); // 0
-  rules.push_back(Rule("")); // 1
+  rules.push_back(new Rule("")); // 0
+  rules.push_back(new Rule("")); // 1
   parse::compute_relevant_sub_rulesets(rules, 2, domains);
   BOOST_CHECK(domains.empty());
 
   DimVector dims;
   Action action(DROP);
-  rules.push_back(Rule(action, dims, "a", "")); // 2
-  rules.push_back(Rule(action, dims, "a", "")); // 3
-  rules.push_back(Rule("")); // 4
+  rules.push_back(new Rule(action, dims, "a", "")); // 2
+  rules.push_back(new Rule(action, dims, "a", "")); // 3
+  rules.push_back(new Rule("")); // 4
   parse::compute_relevant_sub_rulesets(rules, 2, domains);
   BOOST_CHECK_EQUAL(domains.size(), 1);
   BOOST_CHECK(domains[0] == make_tuple(2, 3));
   domains.clear();
 
-  rules.push_back(Rule(""));  // 5
-  rules.push_back(Rule(action, dims, "a", "")); // 6
-  rules.push_back(Rule(action, dims, "a", "")); // 7
-  rules.push_back(Rule(""));  // 8
-  rules.push_back(Rule(action, dims, "a", ""));  // 9
-  rules.push_back(Rule(""));  // 10
-  rules.push_back(Rule(action, dims, "a", "")); // 11
-  rules.push_back(Rule(action, dims, "a", "")); // 12
-  rules.push_back(Rule(action, dims, "a", "")); // 13
+  rules.push_back(new Rule(""));  // 5
+  rules.push_back(new Rule(action, dims, "a", "")); // 6
+  rules.push_back(new Rule(action, dims, "a", "")); // 7
+  rules.push_back(new Rule(""));  // 8
+  rules.push_back(new Rule(action, dims, "a", ""));  // 9
+  rules.push_back(new Rule(""));  // 10
+  rules.push_back(new Rule(action, dims, "a", "")); // 11
+  rules.push_back(new Rule(action, dims, "a", "")); // 12
+  rules.push_back(new Rule(action, dims, "a", "")); // 13
   parse::compute_relevant_sub_rulesets(rules, 2, domains);
   BOOST_CHECK_EQUAL(domains.size(), 3);
   BOOST_CHECK(domains[0] == make_tuple(2, 3));
   BOOST_CHECK(domains[1] == make_tuple(6, 7));
   BOOST_CHECK(domains[2] == make_tuple(11, 13));
   domains.clear();
+  Rule::delete_rules(rules);
   rules.clear();
 
-  rules.push_back(Rule(action, dims, "a", ""));
+  rules.push_back(new Rule(action, dims, "a", ""));
   parse::compute_relevant_sub_rulesets(rules, 1, domains);
   BOOST_CHECK_EQUAL(domains.size(), 1);
   BOOST_CHECK(domains[0] == make_tuple(0, 0));
 
+  Rule::delete_rules(rules);
   rules.clear();
   domains.clear();
   parse::compute_relevant_sub_rulesets(rules, 1, domains);
   BOOST_CHECK(domains.empty());
 
-  rules.push_back(Rule(action, dims, "a", ""));
-  rules.push_back(Rule(action, dims, "a", ""));
-  rules.push_back(Rule(action, dims, "a", ""));
+  rules.push_back(new Rule(action, dims, "a", ""));
+  rules.push_back(new Rule(action, dims, "a", ""));
+  rules.push_back(new Rule(action, dims, "a", ""));
   parse::compute_relevant_sub_rulesets(rules, 4, domains);
   BOOST_CHECK(domains.empty());
   parse::compute_relevant_sub_rulesets(rules, 3, domains);
   BOOST_CHECK_EQUAL(domains.size(), 1);
   BOOST_CHECK(domains[0] == make_tuple(0, 2));
+  Rule::delete_rules(rules);
 }
 
 
@@ -846,6 +855,7 @@ BOOST_AUTO_TEST_CASE(parse_group_rules_by_chain) {
   BOOST_CHECK_EQUAL(chains[0].size(), 1);
   BOOST_CHECK_EQUAL(chains[1].size(), 2);
   BOOST_CHECK_EQUAL(chains[2].size(), 3);
+  Rule::delete_rules(rules);
 }
 
 /*****************************************************************************
@@ -1066,7 +1076,9 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector_verbose) {
 BOOST_AUTO_TEST_CASE(emit_emit_non_applicable_rule) {
   Emitter e(NodeVector(), RuleVector(), DomainVector(), 0);
   stringstream ss;
-  e.emit_non_applicable_rule(Rule("abc"), ss);
+  Rule* rule = new Rule("abc");
+  e.emit_non_applicable_rule(rule, ss);
+  delete rule;
   BOOST_CHECK_EQUAL(ss.str(), "abc\n");
 }
 
@@ -1108,6 +1120,7 @@ BOOST_AUTO_TEST_CASE(emit_emit_leaf) {
       << "-A CURRENT_CHAIN --src 1.2.3.6 -j DROP" << endl
       << "-A CURRENT_CHAIN -j NEXT_CHAIN" << endl << endl;
   BOOST_CHECK_EQUAL(out.str(), expect.str());
+  Rule::delete_rules(rules);
 }
 
 
@@ -1124,7 +1137,8 @@ BOOST_AUTO_TEST_CASE(emit_num_to_ip) {
  *****************************************************************************/
 
 BOOST_AUTO_TEST_CASE(rule_src_with_patched_chain) {
-  Rule rule(parse::parse_rule("-A abc -j DROP"));
-  BOOST_CHECK_EQUAL(rule.src_with_patched_chain("blablub"),
+  Rule* rule = parse::parse_rule("-A abc -j DROP");
+  BOOST_CHECK_EQUAL(rule->src_with_patched_chain("blablub"),
       std::string("-A blablub -j DROP"));
+  delete rule;
 }

@@ -30,7 +30,7 @@ public:
     const size_t start = std::get<0>(domain);
     const size_t end = std::get<1>(domain);
     for (size_t i = start; i <= end; ++i)
-      rules_.push_back(&rules[i]);
+      rules_.push_back(rules[i]);
   }
 
   /*
