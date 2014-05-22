@@ -603,16 +603,20 @@ BOOST_AUTO_TEST_CASE(parse_parse_subnet) {
 BOOST_AUTO_TEST_CASE(parse_parse_protocol) {
   BOOST_CHECK_EQUAL(parse::parse_protocol("tcp"), TCP);
   BOOST_CHECK_EQUAL(parse::parse_protocol("udp"), UDP);
-  BOOST_CHECK_EQUAL(parse::parse_protocol("icmp"), ICMP);
 
-  bool thrown = false;
-  try {
-    parse::parse_protocol("xxx");
-  } catch (const std::string& msg) {
-    BOOST_CHECK(msg == "Invalid protocol: 'xxx'");
-    thrown = true;
+  StrVector failures;
+  failures.push_back("xxx");
+  failures.push_back("icmp");
+  for (size_t i = 0; i < failures.size(); ++i) {
+    bool thrown = false;
+    try {
+      parse::parse_protocol("xxx");
+    } catch (const std::string& msg) {
+      BOOST_CHECK(msg == "Invalid protocol: 'xxx'");
+      thrown = true;
+    }
+    BOOST_CHECK(thrown);
   }
-  BOOST_CHECK(thrown);
 }
 
 
@@ -659,7 +663,7 @@ BOOST_AUTO_TEST_CASE(parse_parse_rule) {
   BOOST_CHECK(parse::parse_rule("-A INPUT -p udp -j ACCEPT").applicable());
   parts.clear();
 
-  BOOST_CHECK(parse::parse_rule("-A INPUT -p icmp -j ACCEPT").applicable());
+  BOOST_CHECK(parse::parse_rule("-A INPUT -p tcp -j ACCEPT").applicable());
   parts.clear();
 
   BOOST_CHECK(parse::parse_rule("-A adasdas -p udp -j ACCEPT").applicable());

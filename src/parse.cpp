@@ -173,8 +173,6 @@ dim_t parse::parse_protocol(const std::string& str) {
     return TCP;
   if (str == "udp")
     return UDP;
-  if (str == "icmp")
-    return ICMP;
   throw "Invalid protocol: '" + str + "'";
 }
 
