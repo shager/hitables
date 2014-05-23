@@ -3,4 +3,4 @@ src/*.o
 *.pyc
 src/tests
 src/hitables
-
+src/*.rules
