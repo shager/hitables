@@ -127,6 +127,11 @@ int main(int argc, char* argv[]) {
     const size_t num_trees = tree_nodes.size();
     for (size_t j = 0; j < num_trees; ++j)
       delete tree_nodes[j];
+    // delete rules
+    RuleVector& chain = chains[i];
+    const size_t num_rules_in_chain = chain.size();
+    for (size_t j = 0; j < num_rules_in_chain; ++j)
+      delete chain[j];
   }
 
   out_msg("", args.verbose());
