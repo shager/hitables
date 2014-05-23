@@ -161,3 +161,19 @@ Box TreeNode::minimal_bounding_box(const RuleVector& rules,
 std::string TreeNode::prot() const {
   return rules_[0]->min_prot() == TCP ? "tcp" : "udp";
 }
+
+
+void TreeNode::compute_numbering() {
+  NodeRefStack node_stack;
+  node_stack.push(this);
+  size_t current_id = 0;
+  while (!node_stack.empty()) {
+    TreeNode* current_node = node_stack.top();
+    node_stack.pop();
+    current_node->set_id(current_id++);
+    NodeVector& children = current_node->children();
+    const size_t num_children = children.size();
+    for (int i = num_children - 1; i >= 0; --i)
+      node_stack.push(&children[i]);
+  }
+}

@@ -392,6 +392,43 @@ BOOST_AUTO_TEST_CASE(treenode_prot) {
   }
 }
 
+
+BOOST_AUTO_TEST_CASE(treenode_compute_numbering) {
+  DimVector dims;
+  TreeNode root(dims);
+  BOOST_CHECK_EQUAL(root.id(), 0);
+  root.compute_numbering();
+  BOOST_CHECK_EQUAL(root.id(), 0);
+  
+  TreeNode root_child_2(dims);
+  root_child_2.add_child(TreeNode(dims));
+  root_child_2.add_child(TreeNode(dims));
+
+  TreeNode root_child_3(dims);
+  root_child_3.add_child(TreeNode(dims));
+
+  root.add_child(TreeNode(dims));
+  root.add_child(TreeNode(root_child_2));
+  root.add_child(TreeNode(root_child_3));
+  
+  root.compute_numbering();
+  BOOST_CHECK_EQUAL(root.id(), 0);
+  NodeVector& root_children = root.children();
+  BOOST_CHECK_EQUAL(root_children.size(), 3);
+  BOOST_CHECK_EQUAL(root_children[0].id(), 1);
+  BOOST_CHECK_EQUAL(root_children[1].id(), 2);
+  BOOST_CHECK_EQUAL(root_children[2].id(), 5);
+
+  NodeVector& root_child_2_children = root_children[1].children();
+  BOOST_CHECK_EQUAL(root_child_2_children.size(), 2);
+  BOOST_CHECK_EQUAL(root_child_2_children[0].id(), 3);
+  BOOST_CHECK_EQUAL(root_child_2_children[1].id(), 4);
+
+  NodeVector& root_child_3_children = root_children[2].children();
+  BOOST_CHECK_EQUAL(root_child_3_children.size(), 1);
+  BOOST_CHECK_EQUAL(root_child_3_children[0].id(), 6);
+}
+
 /*****************************************************************************
  *                         P A R S E   T E S T S                             *
  *****************************************************************************/
@@ -1137,7 +1174,7 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector_verbose) {
  *****************************************************************************/
 
 BOOST_AUTO_TEST_CASE(emit_emit_non_applicable_rule) {
-  Emitter e(NodeVector(), RuleVector(), DomainVector(), 0);
+  Emitter e(NodeRefVector(), RuleVector(), DomainVector(), 0);
   stringstream ss;
   Rule* rule = new Rule("abc");
   e.emit_non_applicable_rule(rule, ss);
@@ -1147,7 +1184,7 @@ BOOST_AUTO_TEST_CASE(emit_emit_non_applicable_rule) {
 
 
 BOOST_AUTO_TEST_CASE(emit_emit_prefix) {
-  Emitter e(NodeVector(), RuleVector(), DomainVector(), 0);
+  Emitter e(NodeRefVector(), RuleVector(), DomainVector(), 0);
   stringstream ss, out;
   ss << "*filter\n" << ":INPUT ACCEPT [0:0]\n" << ":FORWARD ACCEPT [0:0]\n"
       << ":OUTPUT ACCEPT [0:0]\n";
@@ -1157,7 +1194,7 @@ BOOST_AUTO_TEST_CASE(emit_emit_prefix) {
 
 
 BOOST_AUTO_TEST_CASE(emit_emit_suffix) {
-  Emitter e(NodeVector(), RuleVector(), DomainVector(), 0);
+  Emitter e(NodeRefVector(), RuleVector(), DomainVector(), 0);
   stringstream out;
   e.emit_suffix(out);
   BOOST_CHECK_EQUAL("COMMIT\n", out.str());
@@ -1171,7 +1208,7 @@ BOOST_AUTO_TEST_CASE(emit_emit_leaf) {
   rules.push_back(parse::parse_rule("-A CHAIN -p tcp --sport 1 -j DROP"));
   DomainTuple domain(make_tuple(0, 2));
   TreeNode tree(rules, domain);
-  Emitter emitter(NodeVector(), RuleVector(), DomainVector(),
+  Emitter emitter(NodeRefVector(), RuleVector(), DomainVector(),
       Arguments::SEARCH_LINEAR);
   stringstream out;
   emitter.emit_leaf(&tree, "CURRENT_CHAIN", "NEXT_CHAIN", out);

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include "treenode.hpp"
+#include "emit.hpp"
 
 const std::string RED("\x1b[31m");
 const std::string YELLOW("\x1b[33m");
@@ -106,11 +107,11 @@ int main(int argc, char* argv[]) {
   out_msg(domain_msg.str(), args.verbose());
 
   // perform HiCuts transformation
-  std::vector<std::vector<TreeNode*>> chain_trees;
+  std::vector<NodeRefVector> chain_trees;
   const size_t dim_choice = args.dim_choice();
   start = Clock::now();
   for (size_t i_chain = 0; i_chain < num_chains; ++i_chain) {
-    chain_trees.push_back(std::vector<TreeNode*>());
+    chain_trees.push_back(NodeRefVector());
     for (size_t i = 0; i < num_domains; ++i) {
       const DomainTuple& domain = chain_domains[i_chain][i];
       TreeNode* tree_root = new TreeNode(chains[i_chain], domain);
@@ -124,6 +125,13 @@ int main(int argc, char* argv[]) {
   hicuts_msg << "Performed HiCuts transformation in " << time_span
       << " seconds";
   out_msg(hicuts_msg.str(), args.verbose());
+
+  // generate the output
+  for (size_t i = 0; i < num_chains; ++i) {
+    Emitter emitter(chain_trees[i], chains[i], chain_domains[i], Arguments::SEARCH_LINEAR);
+    std::stringstream out;
+    emitter.emit(out);
+  }
 
   // cleanup
   for (size_t i = 0; i < num_chains; ++i) {

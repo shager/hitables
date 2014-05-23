@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <vector>
 #include <queue>
+#include <stack>
 #include <cmath>
 #include "rule.hpp"
 #include "arg.hpp"
@@ -12,9 +13,10 @@ class TreeNode {
 
 public:
   TreeNode(const DimVector& bounds)
-      : box_(bounds), has_been_cut_(false), cut_dim_(0) {}
+      : box_(bounds), has_been_cut_(false), cut_dim_(0), id_(0) {}
 
-  TreeNode(const Box& box) : box_(box), has_been_cut_(false), cut_dim_(0) {}
+  TreeNode(const Box& box) : box_(box), has_been_cut_(false), cut_dim_(0),
+      id_(0) {}
 
   /*
    * Standard constructor to build a tree node.  rules is a vector of rules,
@@ -25,7 +27,7 @@ public:
    */
   TreeNode(const RuleVector& rules, const DomainTuple& domain) :
       box_(minimal_bounding_box(rules, domain)), has_been_cut_(false),
-      cut_dim_(0) {
+      cut_dim_(0), id_(0) {
   
     const size_t start = std::get<0>(domain);
     const size_t end = std::get<1>(domain);
@@ -118,12 +120,28 @@ public:
 
   std::string prot() const;
 
+  /*
+   * Appends a child to the vector of children.
+   * This method is intended to be used only for debugging purposes.
+   */
+  inline void add_child(const TreeNode& child) {children_.push_back(child);}
+
+  inline size_t id() const {return id_;}
+
+  inline void set_id(const size_t id) {id_ = id;}
+
+  /*
+   * Computes a depth-first numbering of the tree with this node as root.
+   */
+  void compute_numbering();
+
 private:
   Box box_;
   std::vector<const Rule*> rules_;
   std::vector<TreeNode> children_;
   bool has_been_cut_;
   size_t cut_dim_;
+  size_t id_;
 
   inline size_t max(const size_t a, const size_t b) const {
     return a > b ? a : b;
@@ -140,9 +158,9 @@ private:
 
 };
 
-
+typedef std::stack<TreeNode*> NodeRefStack;
 typedef std::queue<TreeNode*> NodeRefQueue;
 typedef std::vector<TreeNode> NodeVector;
-
+typedef std::vector<TreeNode*> NodeRefVector;
 
 #endif // HITABLES_TREENODE_HPP

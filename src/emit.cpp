@@ -22,7 +22,7 @@ void Emitter::emit(std::stringstream& out) {
 }
 
 
-void Emitter::emit_tree(TreeNode& tree, std::stringstream& out) {
+void Emitter::emit_tree(TreeNode* tree, std::stringstream& out) {
   //if (search_ == Arguments::SEARCH_LINEAR)
   //  emit_tree_linear_search(tree, "", out);
   ///else
@@ -30,18 +30,17 @@ void Emitter::emit_tree(TreeNode& tree, std::stringstream& out) {
 }
 
 
-void Emitter::emit_tree_linear_search(TreeNode& tree,
+void Emitter::emit_tree_linear_search(TreeNode* tree,
     const std::string& chain, const size_t tree_id,
     const std::string& next_chain, std::stringstream& out) {
 
   size_t chain_count = 0;
-  chain_count++;
   std::string start_chain(Emitter::build_chain_name(chain, tree_id,
-      chain_count));
+      chain_count++));
   out << "# Tree " << tree_id << " for Chain " << chain << std::endl;
   out << "-A " << chain << " -j " << start_chain << std::endl;
   NodeRefQueue node_fifo;
-  node_fifo.push(&tree);
+  node_fifo.push(tree);
 
   while (!node_fifo.empty()) {
     TreeNode* current_node = node_fifo.front();
@@ -61,15 +60,6 @@ void Emitter::emit_tree_linear_search(TreeNode& tree,
     }
   }
   out << std::endl;
-}
-
-
-void Emitter::emit_simple_linear_dispatch(TreeNode* node,
-    const std::string& chain, const size_t tree_id,
-    const size_t chain_count, std::stringstream& out) {
-
-  //const size_t cut_dim = node->cut_dim();
-
 }
 
 
@@ -94,6 +84,7 @@ void emit_linear_ip_dispatch(TreeNode* node,
         << Emitter::build_chain_name(chain, tree_id, chain_count + i + 1)
         << std::endl;
   }
+  out << std::endl;
 }
 
 
@@ -118,6 +109,38 @@ void emit_linear_port_dispatch(TreeNode* node,
         << std::endl;
   }
 }
+
+
+void Emitter::emit_simple_linear_dispatch(TreeNode* node,
+    const std::string& chain, const size_t tree_id,
+    const size_t chain_count, std::stringstream& out) {
+
+  const size_t cut_dim = node->cut_dim();
+  NodeVector& children = node->children();
+  const size_t num_children = children.size();
+  for (size_t i = 0; i < num_children; ++i) {
+    TreeNode* child = &children[i];
+    switch (cut_dim) {
+      // src port
+      case 0:
+        emit_linear_port_dispatch(child, chain, tree_id, chain_count, "sport", cut_dim, out);
+        break;
+      // dst port
+      case 1:
+        emit_linear_port_dispatch(child, chain, tree_id, chain_count, "dport", cut_dim, out);
+        break;
+      // src address
+      case 2:
+        emit_linear_ip_dispatch(child, chain, tree_id, chain_count, "src", cut_dim, out);
+        break;
+      // dst address
+      case 3:
+        emit_linear_ip_dispatch(child, chain, tree_id, chain_count, "dst", cut_dim, out);
+    }
+  }
+}
+
+
 
 
 std::string Emitter::build_chain_name(const std::string& chain,

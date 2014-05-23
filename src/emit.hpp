@@ -8,7 +8,7 @@
 class Emitter {
 public:
 
-  Emitter(const NodeVector& trees, const RuleVector& rules,
+  Emitter(const NodeRefVector& trees, const RuleVector& rules,
       const DomainVector& domains, const size_t search)
       : trees_(trees), rules_(rules), domains_(domains),
       search_(search) {}
@@ -29,11 +29,11 @@ public:
     out << rule->src() << std::endl;
   }
 
-  void emit_tree(TreeNode& tree, std::stringstream& out);
+  void emit_tree(TreeNode* tree, std::stringstream& out);
 
-  void emit_tree_linear_search(TreeNode& tree, const std::string& chain,
-  const size_t tree_id, const std::string& next_chain,
-  std::stringstream& out);
+  void emit_tree_linear_search(TreeNode* tree, const std::string& chain,
+      const size_t tree_id, const std::string& next_chain,
+      std::stringstream& out);
 
   void emit_simple_linear_dispatch(TreeNode* node,
       const std::string& chain, const size_t tree_id,
@@ -48,7 +48,7 @@ public:
       const size_t tree_id, const size_t chain_id);
 
 private:
-  NodeVector trees_;
+  NodeRefVector trees_;
   RuleVector rules_;
   DomainVector domains_;
   const size_t search_;
