@@ -184,9 +184,7 @@ ActionCode parse::parse_action_code(const std::string& str) {
     return DROP;
   if (str == "REJECT")
     return REJECT;
-  if (str == "JUMP")
-    return JUMP;
-  throw "Invalid action code: '" + str + "'";
+  return JUMP;
 }
 
 
@@ -283,8 +281,8 @@ Rule* parse::parse_rule(const std::string& input) {
         return new Rule(input);
       }
       if (code == JUMP) {
-        ++i;
-        check_index(i, len, "Invalid jump (-j) specification");
+        //++i;
+        //check_index(i, len, "Invalid jump (-j) specification");
         action = Action(code, parts[i]);
       } else
         action = Action(code);

@@ -641,15 +641,6 @@ BOOST_AUTO_TEST_CASE(parse_parse_action_code) {
   BOOST_CHECK_EQUAL(parse::parse_action_code("ACCEPT"), ACCEPT);
   BOOST_CHECK_EQUAL(parse::parse_action_code("REJECT"), REJECT);
   BOOST_CHECK_EQUAL(parse::parse_action_code("JUMP"), JUMP);
-
-  bool thrown = false;
-  try {
-    parse::parse_action_code("xxx");
-  } catch (const std::string& msg) {
-    BOOST_CHECK(msg ==  "Invalid action code: 'xxx'");
-    thrown = true;
-  }
-  BOOST_CHECK(thrown);
 }
 
 
@@ -704,13 +695,9 @@ BOOST_AUTO_TEST_CASE(parse_parse_rule) {
   BOOST_CHECK(!rule->applicable());
   delete rule;
 
-  thrown = false;
-  try {
-    parse::parse_rule("-A INPUT -p tcp -j asdjasdkj");
-  } catch (const string& msg) {
-    thrown = true;
-  }
-  BOOST_CHECK(thrown);
+  rule = parse::parse_rule("-A INPUT -p tcp -j asdjasdkj");
+  BOOST_CHECK(rule->applicable());
+  delete rule;
 
   rule = parse::parse_rule("-A INPUT -p udp -m iprange --src-range 117.159.160.68-117.159.164.152 --dst-range 253.59.172.172-253.59.175.252 -m udp --sport 38435:39668 --dport 14309:14373 -j ACCEPT");
   BOOST_CHECK(rule->applicable());
