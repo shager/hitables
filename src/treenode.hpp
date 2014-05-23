@@ -116,6 +116,8 @@ public:
 
   inline bool is_leaf() const {return children_.empty();}
 
+  std::string prot() const;
+
 private:
   Box box_;
   std::vector<const Rule*> rules_;

@@ -378,6 +378,20 @@ BOOST_AUTO_TEST_CASE(treenode_rule_ctor) {
 }
 
 
+BOOST_AUTO_TEST_CASE(treenode_prot) {
+  const size_t num = 2;
+  std::string prots[num] = {"tcp", "udp"};
+  for (size_t j = 0; j < num; ++j) {
+    stringstream ss;
+    ss << "-A x -p " << prots[j] << " -j DROP";
+    RuleVector rules;
+    rules.push_back(parse::parse_rule(ss.str()));
+    TreeNode node(rules, make_tuple(0, 0));
+    BOOST_CHECK_EQUAL(node.prot(), prots[j]);
+    Rule::delete_rules(rules);
+  }
+}
+
 /*****************************************************************************
  *                         P A R S E   T E S T S                             *
  *****************************************************************************/

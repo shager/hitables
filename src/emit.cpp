@@ -80,6 +80,8 @@ void emit_linear_ip_dispatch(TreeNode* node,
 
   std::string current_chain(Emitter::build_chain_name(chain, tree_id,
       chain_count));
+  out << "# Linear search on " << flag << " ip field, chain " << current_chain
+      << std::endl;
   NodeVector& children = node->children();
   const size_t num_children = children.size();
   for (size_t i = 0; i < num_children; ++i) {
@@ -97,18 +99,20 @@ void emit_linear_ip_dispatch(TreeNode* node,
 
 void emit_linear_port_dispatch(TreeNode* node, 
     const std::string& chain, const size_t tree_id,
-    const size_t chain_count, const std::string& flag, const std::string& prot,
+    const size_t chain_count, const std::string& flag,
     const size_t dim, std::stringstream& out) {
 
   std::string current_chain(Emitter::build_chain_name(chain, tree_id,
       chain_count));
+  out << "# Linear search on " << flag << " port field, chain "
+      << current_chain << std::endl;
   NodeVector& children = node->children();
   const size_t num_children = children.size();
   for (size_t i = 0; i < num_children; ++i) {
     const DimTuple& range = children[i].box().box_bounds()[dim];
     out << "-A " << Emitter::build_chain_name(chain, tree_id,
         chain_count + i + 1)
-        << " -p " << prot << " --" << flag << " "
+        << " -p " << node->prot() << " --" << flag << " "
         << std::get<0>(range) << ":" << std::get<1>(range) << " -j "
         << Emitter::build_chain_name(chain, tree_id, chain_count + i + 1)
         << std::endl;
