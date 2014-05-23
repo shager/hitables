@@ -37,7 +37,7 @@ public:
       src_(src) {}
 
   Rule(const std::string& src) : action_(Action(NONE)), box_(DimVector()),
-      applicable_(false), src_(src) {}
+      applicable_(false), chain_(""), src_(src) {}
 
   inline const Action& action() const {return action_;}
 
@@ -59,6 +59,8 @@ public:
   std::string src_with_patched_chain(const std::string& chain) const;
 
   static void delete_rules(RuleVector& rules);
+
+  inline dim_t min_prot() const {return std::get<0>(box_.box_bounds()[4]);}
 
 private:
   const Action action_;

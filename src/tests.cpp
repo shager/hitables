@@ -793,8 +793,13 @@ BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets) {
   rules.push_back(new Rule("")); // 1
   parse::compute_relevant_sub_rulesets(rules, 2, domains);
   BOOST_CHECK(domains.empty());
-
+  
   DimVector dims;
+  dims.push_back(make_tuple(1, 1));
+  dims.push_back(make_tuple(2, 3));
+  dims.push_back(make_tuple(3, 3));
+  dims.push_back(make_tuple(4, 4));
+  dims.push_back(make_tuple(5, 5));
   Action action(DROP);
   rules.push_back(new Rule(action, dims, "a", "")); // 2
   rules.push_back(new Rule(action, dims, "a", "")); // 3
@@ -859,6 +864,59 @@ BOOST_AUTO_TEST_CASE(parse_group_rules_by_chain) {
   BOOST_CHECK_EQUAL(chains[0].size(), 1);
   BOOST_CHECK_EQUAL(chains[1].size(), 2);
   BOOST_CHECK_EQUAL(chains[2].size(), 3);
+  Rule::delete_rules(rules);
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_sort_by_protocol) {
+  RuleVector rules;
+  rules.push_back(parse::parse_rule("-A c -p tcp --sport 2"));
+  rules.push_back(parse::parse_rule("-A c -p tcp --sport 1"));
+  rules.push_back(parse::parse_rule("-A c -p udp --sport 3"));
+  rules.push_back(parse::parse_rule("-A c -p tcp --sport 4"));
+  rules.push_back(parse::parse_rule("-A c -p udp --sport 5"));
+  rules.push_back(parse::parse_rule("-A c -p udp --sport 6"));
+  rules.push_back(parse::parse_rule("-A c -p tcp --sport 7"));
+  rules.push_back(parse::parse_rule("-A c -p tcp --sport 8"));
+  parse::sort_by_protocol(rules);
+  BOOST_CHECK_EQUAL(rules.size(), 8);
+  BOOST_CHECK_EQUAL(rules[0]->src(), "-A c -p tcp --sport 2");
+  BOOST_CHECK_EQUAL(rules[1]->src(), "-A c -p tcp --sport 1");
+  BOOST_CHECK_EQUAL(rules[2]->src(), "-A c -p tcp --sport 4");
+  BOOST_CHECK_EQUAL(rules[3]->src(), "-A c -p tcp --sport 7");
+  BOOST_CHECK_EQUAL(rules[4]->src(), "-A c -p tcp --sport 8");
+  BOOST_CHECK_EQUAL(rules[5]->src(), "-A c -p udp --sport 3");
+  BOOST_CHECK_EQUAL(rules[6]->src(), "-A c -p udp --sport 5");
+  BOOST_CHECK_EQUAL(rules[7]->src(), "-A c -p udp --sport 6");
+  Rule::delete_rules(rules);
+}
+
+BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets_with_sort) {
+  RuleVector rules;
+  rules.push_back(parse::parse_rule("-A c -p tcp --sport 2"));
+  rules.push_back(parse::parse_rule("-A c -p tcp --sport 1"));
+  rules.push_back(parse::parse_rule("-A c -p udp --sport 3"));
+  rules.push_back(parse::parse_rule("-A c -p tcp --sport 4"));
+  rules.push_back(parse::parse_rule("-A c -p udp --sport 5"));
+  rules.push_back(parse::parse_rule("-A c -p udp --sport 6"));
+  rules.push_back(parse::parse_rule("-A c -p tcp --sport 7"));
+  rules.push_back(parse::parse_rule("-A c -p tcp --sport 8"));
+  DomainVector domains;
+  parse::compute_relevant_sub_rulesets(rules, 3, domains);
+  
+  BOOST_CHECK_EQUAL(domains.size(), 2);
+  BOOST_CHECK(domains[0] == make_tuple(0, 4));
+  BOOST_CHECK(domains[1] == make_tuple(5, 7));
+
+  BOOST_CHECK_EQUAL(rules.size(), 8);
+  BOOST_CHECK_EQUAL(rules[0]->src(), "-A c -p tcp --sport 2");
+  BOOST_CHECK_EQUAL(rules[1]->src(), "-A c -p tcp --sport 1");
+  BOOST_CHECK_EQUAL(rules[2]->src(), "-A c -p tcp --sport 4");
+  BOOST_CHECK_EQUAL(rules[3]->src(), "-A c -p tcp --sport 7");
+  BOOST_CHECK_EQUAL(rules[4]->src(), "-A c -p tcp --sport 8");
+  BOOST_CHECK_EQUAL(rules[5]->src(), "-A c -p udp --sport 3");
+  BOOST_CHECK_EQUAL(rules[6]->src(), "-A c -p udp --sport 5");
+  BOOST_CHECK_EQUAL(rules[7]->src(), "-A c -p udp --sport 6");
   Rule::delete_rules(rules);
 }
 

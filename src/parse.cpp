@@ -320,10 +320,12 @@ void parse::parse_rules(const StrVector& input, RuleVector& rules) {
 }
 
 
-void parse::compute_relevant_sub_rulesets(const RuleVector& rules,
+void parse::compute_relevant_sub_rulesets(RuleVector& rules,
     const size_t min_rules, DomainVector& domains) {
 
   const size_t len = rules.size();
+  DomainVector temp_domains;
+  // first look for domains where TCP or UDP are specified
   bool have_start = false;
   size_t start;
   for (size_t i = 0; i < len; ++i) {
@@ -338,12 +340,42 @@ void parse::compute_relevant_sub_rulesets(const RuleVector& rules,
       if (have_start) {
         have_start = false;
         if (i - start >= min_rules)
-          domains.push_back(std::make_tuple(start, i - 1));
+          temp_domains.push_back(std::make_tuple(start, i - 1));
       }
     }
   }
   if (have_start && (len - start >= min_rules))
-    domains.push_back(std::make_tuple(start, len - 1));
+    temp_domains.push_back(std::make_tuple(start, len - 1));
+
+  // sort each of the detected domains by protocol
+  const size_t num_domains = temp_domains.size();
+  for (size_t i = 0; i < num_domains; ++i) {
+    const DomainTuple& domain = temp_domains[i];
+    const size_t start = std::get<0>(domain);
+    const size_t end = std::get<1>(domain);
+    std::stable_sort(rules.begin() + start, rules.begin() + end + 1,
+        [] (Rule* a, Rule* b) {
+      return (a->min_prot() < b->min_prot());
+    });
+  }
+
+  // re-compute relevant domains
+  for (size_t i = 0; i < num_domains; ++i) {
+    const DomainTuple& domain = temp_domains[i];
+    const size_t start = std::get<0>(domain);
+    const size_t end = std::get<1>(domain);
+    if (rules[start]->min_prot() == rules[end]->min_prot())
+      domains.push_back(std::make_tuple(start, end));
+    else {
+      for (size_t j = start; j < end; ++j) {
+        if (rules[j]->min_prot() != rules[j + 1]->min_prot()) {
+          domains.push_back(std::make_tuple(start, j));
+          domains.push_back(std::make_tuple(j + 1, end));
+          break;
+        }
+      }
+    }
+  }
 }
 
 
@@ -365,4 +397,11 @@ void parse::group_rules_by_chain(const RuleVector& rules,
       chains.push_back(chain_rules);
     }
   }
+}
+
+
+void parse::sort_by_protocol(RuleVector& rules) {
+  std::stable_sort(rules.begin(), rules.end(), [] (Rule* a, Rule* b) -> bool {
+    return (a->min_prot() < b->min_prot());
+  });
 }
