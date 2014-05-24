@@ -210,6 +210,7 @@ Rule* parse::parse_rule(const std::string& input) {
   dim_t prot = PROTOCOL_WILDCARD;
   Action action(NONE);
   std::string chain("");
+  bool applicable = true;
 
   for (size_t i = 0; i < len; ++i) {
     const std::string& word = parts[i];
@@ -224,14 +225,16 @@ Rule* parse::parse_rule(const std::string& input) {
       try {
         prot = parse::parse_protocol(parts[i]);
       } catch (const std::string& msg) {
-        return new Rule(input);
+        //return new Rule(input);
+        applicable = false;
       }
 
     } else if (word == "-m") {
       ++i;
       check_index(i, len, "Invalid match specification");
       if (parts[i] != "iprange" && parts[i] != "tcp" && parts[i] != "udp")
-        return new Rule(input);
+        //return new Rule(input);
+        applicable = false;
 
     } else if (word == "--src" || word == "--dst") {
       ++i;
@@ -275,7 +278,8 @@ Rule* parse::parse_rule(const std::string& input) {
       try {
         code = parse::parse_action_code(parts[i]);
       } catch (const int err_code) {
-        return new Rule(input);
+        //return new Rule(input);
+        applicable = false;
       }
       if (code == JUMP) {
         //++i;
@@ -287,11 +291,14 @@ Rule* parse::parse_rule(const std::string& input) {
     } else
       return new Rule(input);
   }
+  // XXX should throw an exception here
   if (chain.size() == 0)
-    return new Rule(input);
+    return new Rule(input, chain);
+  if (!applicable)
+    return new Rule(input, chain);
   // check if a transport layer protocol is specified
   if (prot == PROTOCOL_WILDCARD)
-    return new Rule(input);
+    return new Rule(input, chain);
 
   // assemble rule from data gathered above
   DimVector dims;

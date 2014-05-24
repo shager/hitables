@@ -37,6 +37,11 @@ public:
       : action_(action), box_(dims), applicable_(true), chain_(chain),
       src_(src), protocol_(protocol) {}
 
+  Rule(const std::string& src, const std::string& chain) :
+      action_(Action(NONE)), box_(DimVector()), applicable_(false),
+      chain_(chain), src_(src), protocol_(PROTOCOL_WILDCARD) {}
+
+  // XXX this constructor should be removed
   Rule(const std::string& src) : action_(Action(NONE)), box_(DimVector()),
       applicable_(false), chain_(""), src_(src), protocol_(PROTOCOL_WILDCARD) {}
 

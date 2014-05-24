@@ -742,6 +742,13 @@ BOOST_AUTO_TEST_CASE(parse_parse_rule) {
 }
 
 
+BOOST_AUTO_TEST_CASE(parse_parse_rule_not_applicable_with_chain) {
+  Rule* rule = parse::parse_rule("-A CHAIN -p icmp -j DROP");
+  BOOST_CHECK_EQUAL(rule->chain(), "CHAIN");
+  delete rule;
+}
+
+
 BOOST_AUTO_TEST_CASE(parse_parse_rules_values) {
   Rule* rule = parse::parse_rule("-A INPUT -p udp -m iprange --src-range 0.0.0.5-0.0.0.6 --dst-range 0.0.0.7-0.0.0.8 -m udp --sport 1:2 --dport 3:4 -j ACCEPT");
   BOOST_CHECK(rule->applicable());
@@ -896,6 +903,19 @@ BOOST_AUTO_TEST_CASE(parse_group_rules_by_chain) {
   BOOST_CHECK_EQUAL(chains[0].size(), 1);
   BOOST_CHECK_EQUAL(chains[1].size(), 2);
   BOOST_CHECK_EQUAL(chains[2].size(), 3);
+  Rule::delete_rules(rules);
+}
+
+
+BOOST_AUTO_TEST_CASE(parse_group_rules_by_chain_regression) {
+  StrVector input;
+  input.push_back("-A FORWARD -p udp -j DROP");
+  input.push_back("-A FORWARD -p icmp -j DROP");
+  RuleVector rules;
+  ChainVector chains;
+  parse::parse_rules(input, rules);
+  parse::group_rules_by_chain(rules, chains);
+  BOOST_CHECK_EQUAL(chains.size(), 1);
   Rule::delete_rules(rules);
 }
 
