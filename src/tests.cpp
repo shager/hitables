@@ -904,29 +904,6 @@ BOOST_AUTO_TEST_CASE(parse_group_rules_by_chain) {
 }
 
 
-BOOST_AUTO_TEST_CASE(parse_sort_by_protocol) {
-  RuleVector rules;
-  rules.push_back(parse::parse_rule("-A c -p tcp --sport 2"));
-  rules.push_back(parse::parse_rule("-A c -p tcp --sport 1"));
-  rules.push_back(parse::parse_rule("-A c -p udp --sport 3"));
-  rules.push_back(parse::parse_rule("-A c -p tcp --sport 4"));
-  rules.push_back(parse::parse_rule("-A c -p udp --sport 5"));
-  rules.push_back(parse::parse_rule("-A c -p udp --sport 6"));
-  rules.push_back(parse::parse_rule("-A c -p tcp --sport 7"));
-  rules.push_back(parse::parse_rule("-A c -p tcp --sport 8"));
-  parse::sort_by_protocol(rules);
-  BOOST_CHECK_EQUAL(rules.size(), 8);
-  BOOST_CHECK_EQUAL(rules[0]->src(), "-A c -p tcp --sport 2");
-  BOOST_CHECK_EQUAL(rules[1]->src(), "-A c -p tcp --sport 1");
-  BOOST_CHECK_EQUAL(rules[2]->src(), "-A c -p tcp --sport 4");
-  BOOST_CHECK_EQUAL(rules[3]->src(), "-A c -p tcp --sport 7");
-  BOOST_CHECK_EQUAL(rules[4]->src(), "-A c -p tcp --sport 8");
-  BOOST_CHECK_EQUAL(rules[5]->src(), "-A c -p udp --sport 3");
-  BOOST_CHECK_EQUAL(rules[6]->src(), "-A c -p udp --sport 5");
-  BOOST_CHECK_EQUAL(rules[7]->src(), "-A c -p udp --sport 6");
-  Rule::delete_rules(rules);
-}
-
 BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets_with_sort) {
   RuleVector rules;
   rules.push_back(parse::parse_rule("-A c -p tcp --sport 2"));

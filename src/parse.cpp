@@ -392,10 +392,3 @@ void parse::group_rules_by_chain(const RuleVector& rules,
     }
   }
 }
-
-
-void parse::sort_by_protocol(RuleVector& rules) {
-  std::stable_sort(rules.begin(), rules.end(), [] (Rule* a, Rule* b) -> bool {
-    return (a->protocol() < b->protocol());
-  });
-}

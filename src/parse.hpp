@@ -98,13 +98,6 @@ namespace parse {
    */
   void compute_relevant_sub_rulesets(RuleVector& rules, const size_t min_rules,
       DomainVector& domains);
-
-  /*
-   * Sort the given vector of rules by transport layer protocols.  IMPORTANT:
-   * Transport layer protocols TCP or UDP must be specified for each rule.
-   */
-  void sort_by_protocol(RuleVector& rules);
-
 }
 
 #endif // HITABLES_PARSE_HPP
