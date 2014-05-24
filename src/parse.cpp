@@ -207,8 +207,7 @@ Rule* parse::parse_rule(const std::string& input) {
   dim_t max_saddr = max_ip;
   dim_t min_daddr = min_ip;
   dim_t max_daddr = max_ip;
-  dim_t min_prot_ = min_prot;
-  dim_t max_prot_ = max_prot;
+  dim_t prot = PROTOCOL_WILDCARD;
   Action action(NONE);
   std::string chain("");
 
@@ -223,9 +222,7 @@ Rule* parse::parse_rule(const std::string& input) {
       ++i;
       check_index(i, len, "Invalid protocol specification");
       try {
-        const dim_t prot(parse::parse_protocol(parts[i]));
-        min_prot_ = prot;
-        max_prot_ = prot;
+        prot = parse::parse_protocol(parts[i]);
       } catch (const int code) {
         return new Rule(input);
       }
@@ -293,7 +290,7 @@ Rule* parse::parse_rule(const std::string& input) {
   if (chain.size() == 0)
     return new Rule(input);
   // check if a transport layer protocol is specified
-  if (min_prot_ == min_prot && max_prot_ == max_prot)
+  if (prot == PROTOCOL_WILDCARD)
     return new Rule(input);
 
   // assemble rule from data gathered above
@@ -302,8 +299,7 @@ Rule* parse::parse_rule(const std::string& input) {
   dims.push_back(std::make_tuple(min_dport, max_dport));
   dims.push_back(std::make_tuple(min_saddr, max_saddr));
   dims.push_back(std::make_tuple(min_daddr, max_daddr));
-  dims.push_back(std::make_tuple(min_prot_, max_prot_));
-  return new Rule(action, dims, chain, input);
+  return new Rule(action, dims, chain, input, prot);
 }
 
 
@@ -353,7 +349,7 @@ void parse::compute_relevant_sub_rulesets(RuleVector& rules,
     const size_t end = std::get<1>(domain);
     std::stable_sort(rules.begin() + start, rules.begin() + end + 1,
         [] (Rule* a, Rule* b) {
-      return (a->min_prot() < b->min_prot());
+      return (a->protocol() < b->protocol());
     });
   }
 
@@ -362,11 +358,11 @@ void parse::compute_relevant_sub_rulesets(RuleVector& rules,
     const DomainTuple& domain = temp_domains[i];
     const size_t start = std::get<0>(domain);
     const size_t end = std::get<1>(domain);
-    if (rules[start]->min_prot() == rules[end]->min_prot())
+    if (rules[start]->protocol() == rules[end]->protocol())
       domains.push_back(std::make_tuple(start, end));
     else {
       for (size_t j = start; j < end; ++j) {
-        if (rules[j]->min_prot() != rules[j + 1]->min_prot()) {
+        if (rules[j]->protocol() != rules[j + 1]->protocol()) {
           domains.push_back(std::make_tuple(start, j));
           domains.push_back(std::make_tuple(j + 1, end));
           break;
@@ -400,6 +396,6 @@ void parse::group_rules_by_chain(const RuleVector& rules,
 
 void parse::sort_by_protocol(RuleVector& rules) {
   std::stable_sort(rules.begin(), rules.end(), [] (Rule* a, Rule* b) -> bool {
-    return (a->min_prot() < b->min_prot());
+    return (a->protocol() < b->protocol());
   });
 }

@@ -29,15 +29,16 @@ typedef std::vector<DomainTuple> DomainVector;
 class Rule {
 public:
   Rule(const Action& action, const Box& box, const std::string& src) 
-      : action_(action), box_(box), applicable_(true), chain_(""), src_(src) {}
+      : action_(action), box_(box), applicable_(true), chain_(""), src_(src),
+      protocol_(PROTOCOL_WILDCARD) {}
 
   Rule(const Action& action, const DimVector& dims, const std::string& chain,
-      const std::string& src)
+      const std::string& src, const size_t protocol)
       : action_(action), box_(dims), applicable_(true), chain_(chain),
-      src_(src) {}
+      src_(src), protocol_(protocol) {}
 
   Rule(const std::string& src) : action_(Action(NONE)), box_(DimVector()),
-      applicable_(false), chain_(""), src_(src) {}
+      applicable_(false), chain_(""), src_(src), protocol_(PROTOCOL_WILDCARD) {}
 
   inline const Action& action() const {return action_;}
 
@@ -60,7 +61,7 @@ public:
 
   static void delete_rules(RuleVector& rules);
 
-  inline dim_t min_prot() const {return std::get<0>(box_.box_bounds()[4]);}
+  inline dim_t protocol() const {return protocol_;}
 
 private:
   const Action action_;
@@ -68,6 +69,7 @@ private:
   const bool applicable_;
   std::string chain_;
   std::string src_;
+  size_t protocol_;
 };
 
 #endif // HITABLES_RULE_HPP

@@ -751,8 +751,9 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules_values) {
   BOOST_CHECK(rule->applicable());
   BOOST_CHECK(rule->action().code() == ACCEPT);
   // check rule size
+  BOOST_CHECK_EQUAL(rule->protocol(), UDP);
   const DimVector& bounds = rule->box().box_bounds();
-  BOOST_CHECK_EQUAL(bounds.size(), 5);
+  BOOST_CHECK_EQUAL(bounds.size(), 4);
   BOOST_CHECK(get<0>(bounds[0]) == 1);
   BOOST_CHECK(get<1>(bounds[0]) == 2);
   BOOST_CHECK(get<0>(bounds[1]) == 3);
@@ -761,8 +762,6 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules_values) {
   BOOST_CHECK(get<1>(bounds[2]) == 6);
   BOOST_CHECK(get<0>(bounds[3]) == 7);
   BOOST_CHECK(get<1>(bounds[3]) == 8);
-  BOOST_CHECK(get<0>(bounds[4]) == UDP);
-  BOOST_CHECK(get<1>(bounds[4]) == UDP);
   BOOST_CHECK(rule->chain() == "INPUT");
   delete rule;
 }
@@ -773,8 +772,9 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules_prefixes) {
   BOOST_CHECK(rule->applicable());
   BOOST_CHECK(rule->action().code() == DROP);
   // check rule size
+  BOOST_CHECK_EQUAL(rule->protocol(), UDP);
   const DimVector& bounds = rule->box().box_bounds();
-  BOOST_CHECK_EQUAL(bounds.size(), 5);
+  BOOST_CHECK_EQUAL(bounds.size(), 4);
   BOOST_CHECK(get<0>(bounds[0]) == 1);
   BOOST_CHECK(get<1>(bounds[0]) == 2);
   BOOST_CHECK(get<0>(bounds[1]) == 3);
@@ -783,8 +783,6 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules_prefixes) {
   BOOST_CHECK(get<1>(bounds[2]) == 5);
   BOOST_CHECK(get<0>(bounds[3]) == 2);
   BOOST_CHECK(get<1>(bounds[3]) == 3);
-  BOOST_CHECK(get<0>(bounds[4]) == UDP);
-  BOOST_CHECK(get<1>(bounds[4]) == UDP);
   BOOST_CHECK(rule->chain() == "INPUT");
   delete rule;
 }
@@ -839,8 +837,8 @@ BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets) {
   dims.push_back(make_tuple(4, 4));
   dims.push_back(make_tuple(5, 5));
   Action action(DROP);
-  rules.push_back(new Rule(action, dims, "a", "")); // 2
-  rules.push_back(new Rule(action, dims, "a", "")); // 3
+  rules.push_back(new Rule(action, dims, "a", "", 0)); // 2
+  rules.push_back(new Rule(action, dims, "a", "", 0)); // 3
   rules.push_back(new Rule("")); // 4
   parse::compute_relevant_sub_rulesets(rules, 2, domains);
   BOOST_CHECK_EQUAL(domains.size(), 1);
@@ -848,14 +846,14 @@ BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets) {
   domains.clear();
 
   rules.push_back(new Rule(""));  // 5
-  rules.push_back(new Rule(action, dims, "a", "")); // 6
-  rules.push_back(new Rule(action, dims, "a", "")); // 7
+  rules.push_back(new Rule(action, dims, "a", "", 0)); // 6
+  rules.push_back(new Rule(action, dims, "a", "", 0)); // 7
   rules.push_back(new Rule(""));  // 8
-  rules.push_back(new Rule(action, dims, "a", ""));  // 9
+  rules.push_back(new Rule(action, dims, "a", "", 0));  // 9
   rules.push_back(new Rule(""));  // 10
-  rules.push_back(new Rule(action, dims, "a", "")); // 11
-  rules.push_back(new Rule(action, dims, "a", "")); // 12
-  rules.push_back(new Rule(action, dims, "a", "")); // 13
+  rules.push_back(new Rule(action, dims, "a", "", 0)); // 11
+  rules.push_back(new Rule(action, dims, "a", "", 0)); // 12
+  rules.push_back(new Rule(action, dims, "a", "", 0)); // 13
   parse::compute_relevant_sub_rulesets(rules, 2, domains);
   BOOST_CHECK_EQUAL(domains.size(), 3);
   BOOST_CHECK(domains[0] == make_tuple(2, 3));
@@ -865,7 +863,7 @@ BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets) {
   Rule::delete_rules(rules);
   rules.clear();
 
-  rules.push_back(new Rule(action, dims, "a", ""));
+  rules.push_back(new Rule(action, dims, "a", "", 0));
   parse::compute_relevant_sub_rulesets(rules, 1, domains);
   BOOST_CHECK_EQUAL(domains.size(), 1);
   BOOST_CHECK(domains[0] == make_tuple(0, 0));
@@ -876,9 +874,9 @@ BOOST_AUTO_TEST_CASE(parse_compute_relevant_sub_rulesets) {
   parse::compute_relevant_sub_rulesets(rules, 1, domains);
   BOOST_CHECK(domains.empty());
 
-  rules.push_back(new Rule(action, dims, "a", ""));
-  rules.push_back(new Rule(action, dims, "a", ""));
-  rules.push_back(new Rule(action, dims, "a", ""));
+  rules.push_back(new Rule(action, dims, "a", "", 0));
+  rules.push_back(new Rule(action, dims, "a", "", 0));
+  rules.push_back(new Rule(action, dims, "a", "", 0));
   parse::compute_relevant_sub_rulesets(rules, 4, domains);
   BOOST_CHECK(domains.empty());
   parse::compute_relevant_sub_rulesets(rules, 3, domains);

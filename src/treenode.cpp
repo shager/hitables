@@ -159,7 +159,7 @@ Box TreeNode::minimal_bounding_box(const RuleVector& rules,
 
 
 std::string TreeNode::prot() const {
-  return rules_[0]->min_prot() == TCP ? "tcp" : "udp";
+  return rules_[0]->protocol() == TCP ? "tcp" : "udp";
 }
 
 
