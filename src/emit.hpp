@@ -23,13 +23,12 @@ public:
 
   void emit_suffix(std::stringstream& out);
 
-  inline void emit_non_applicable_rule(const Rule* rule,
-      std::stringstream& out) {
+  void emit_non_applicable_rule(const Rule* rule, const std::string& chain,
+      std::stringstream& out);
 
-    out << rule->src() << std::endl;
-  }
-
-  void emit_tree(TreeNode* tree, std::stringstream& out);
+  void emit_tree(TreeNode* tree, const std::string& chain,
+      const size_t tree_id, const std::string& next_chain,
+      std::stringstream& out);
 
   void emit_tree_linear_search(TreeNode* tree, const std::string& chain,
       const size_t tree_id, const std::string& next_chain,
@@ -43,9 +42,6 @@ public:
       const std::string& next_chain, std::stringstream& out);
 
   static std::string num_to_ip(const dim_t ip_num);
-
-  static std::string build_chain_name(const std::string& chain,
-      const size_t tree_id, const size_t chain_id);
 
 private:
   NodeRefVector trees_;

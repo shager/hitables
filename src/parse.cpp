@@ -223,7 +223,7 @@ Rule* parse::parse_rule(const std::string& input) {
       check_index(i, len, "Invalid protocol specification");
       try {
         prot = parse::parse_protocol(parts[i]);
-      } catch (const int code) {
+      } catch (const std::string& msg) {
         return new Rule(input);
       }
 

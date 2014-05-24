@@ -127,11 +127,12 @@ int main(int argc, char* argv[]) {
   out_msg(hicuts_msg.str(), args.verbose());
 
   // generate the output
+  std::stringstream out;
   for (size_t i = 0; i < num_chains; ++i) {
     Emitter emitter(chain_trees[i], chains[i], chain_domains[i], Arguments::SEARCH_LINEAR);
-    std::stringstream out;
     emitter.emit(out);
   }
+  std::cout << out.str() << std::endl;
 
   // cleanup
   for (size_t i = 0; i < num_chains; ++i) {

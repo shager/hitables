@@ -720,13 +720,9 @@ BOOST_AUTO_TEST_CASE(parse_parse_rule) {
   BOOST_CHECK(!rule->applicable());
   delete rule;
 
-  bool thrown = false;
-  try {
-    parse::parse_rule("-A INPUT -p asdasd -j ACCEPT");
-  } catch (const string& msg) {
-    thrown = true;
-  }
-  BOOST_CHECK(thrown);
+  rule = parse::parse_rule("-A INPUT -p asdasd -j ACCEPT");
+  BOOST_CHECK(!rule->applicable());
+  delete rule;
 
   rule = parse::parse_rule("-A INPUT -blabla -j ACCEPT");
   BOOST_CHECK(!rule->applicable());
@@ -1151,10 +1147,10 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector_verbose) {
 BOOST_AUTO_TEST_CASE(emit_emit_non_applicable_rule) {
   Emitter e(NodeRefVector(), RuleVector(), DomainVector(), 0);
   stringstream ss;
-  Rule* rule = new Rule("abc");
-  e.emit_non_applicable_rule(rule, ss);
+  Rule* rule = parse::parse_rule("-A CHAIN -p udp -j BLA");
+  e.emit_non_applicable_rule(rule, "NEW_CHAIN", ss);
   delete rule;
-  BOOST_CHECK_EQUAL(ss.str(), "abc\n");
+  BOOST_CHECK_EQUAL(ss.str(), "-A NEW_CHAIN -p udp -j BLA\n");
 }
 
 
