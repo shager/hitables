@@ -35,11 +35,12 @@ void Emitter::emit(std::stringstream& out) {
       emit_non_applicable_rule(rules_[i], sub_chain, out);
       ++i;
     }
-    emit_tree(trees_[j], sub_chain, j, next_sub_chain, out);
+    i = end + 1;
+    const bool leaf_jump = i != num_rules;
+    emit_tree(trees_[j], sub_chain, j, next_sub_chain, leaf_jump, out);
     sub_chain = next_sub_chain;
     ++sub_chain_id;
     next_sub_chain = build_chain_name(chain, sub_chain_id);
-    i = end + 1;
   }
   for (; i < num_rules; ++i)
     emit_non_applicable_rule(rules_[i], sub_chain, out);
@@ -48,18 +49,17 @@ void Emitter::emit(std::stringstream& out) {
 
 void Emitter::emit_tree(TreeNode* tree, const std::string& chain,
     const size_t tree_id, const std::string& next_chain,
-    std::stringstream& out) {
+    const bool leaf_jump, std::stringstream& out) {
 
   if (search_ == Arguments::SEARCH_LINEAR)
-    emit_tree_linear_search(tree, chain, tree_id, next_chain, out);
-  ///else
-  ///  emit_tree_binary_search(tree, out);
+    emit_tree_linear_search(tree, chain, tree_id, next_chain, leaf_jump, out);
 }
 
 
 void Emitter::emit_tree_linear_search(TreeNode* tree,
     const std::string& chain, const size_t tree_id,
-    const std::string& next_chain, std::stringstream& out) {
+    const std::string& next_chain, const bool leaf_jump,
+    std::stringstream& out) {
 
   tree->compute_numbering();
   std::string start_chain(build_tree_chain_name(chain, tree_id, tree->id()));
@@ -73,7 +73,7 @@ void Emitter::emit_tree_linear_search(TreeNode* tree,
     node_fifo.pop();
     if (node->is_leaf())
       emit_leaf(node, build_tree_chain_name(chain, tree_id, node->id()),
-          next_chain, out);
+          next_chain, leaf_jump, out);
     else {
       emit_simple_linear_dispatch(node, chain, tree_id, node->id(), out);
       // now ensure that all children of this node are traversed
@@ -169,7 +169,8 @@ void Emitter::emit_simple_linear_dispatch(TreeNode* node,
 
 
 void Emitter::emit_leaf(const TreeNode* node, const std::string& current_chain,
-    const std::string& next_chain, std::stringstream& out) {
+    const std::string& next_chain, const bool leaf_jump,
+    std::stringstream& out) {
   
   const size_t num_rules = node->num_rules();
   if (num_rules == 0)
@@ -180,17 +181,10 @@ void Emitter::emit_leaf(const TreeNode* node, const std::string& current_chain,
     out << node->rules()[i]->src_with_patched_chain(current_chain)
         << std::endl;
   }
-  out << "-A " << current_chain << " -j " << next_chain << std::endl
-      << std::endl;
+  if (leaf_jump)
+    out << "-A " << current_chain << " -j " << next_chain << std::endl;
+  out << std::endl;
 }
-
-
-
-///void Emitter::emit_tree_binary_search(const TreeNode& tree,
-///    std::stringstream& out) {
-///
-///  
-///}
 
 
 void Emitter::emit_prefix(std::stringstream& out) {

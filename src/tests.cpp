@@ -1227,7 +1227,7 @@ BOOST_AUTO_TEST_CASE(emit_emit_leaf) {
   Emitter emitter(NodeRefVector(), RuleVector(), DomainVector(),
       Arguments::SEARCH_LINEAR);
   stringstream out;
-  emitter.emit_leaf(&tree, "CURRENT_CHAIN", "NEXT_CHAIN", out);
+  emitter.emit_leaf(&tree, "CURRENT_CHAIN", "NEXT_CHAIN", true, out);
 
   stringstream expect;
   expect << "# leaf node" << endl
