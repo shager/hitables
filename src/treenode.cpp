@@ -7,21 +7,23 @@ void TreeNode::cut(const dim_t dimension, const size_t num_cuts) {
   box_.cut(dimension, num_cuts, result_boxes);
   const size_t num_rules = rules_.size();
   const size_t num_result_boxes = result_boxes.size();
-  // create the new tree nodes
-  for (size_t i = 0; i < num_result_boxes; ++i)
-    children_.push_back(TreeNode(result_boxes[i]));
-  // Check for each rule whether it collides with one of the new boxes.
-  // If yes, store a pointer to this rule in the respective tree nodes.
-  for (size_t i = 0; i < num_rules; ++i) {
-    const Box& rule_box = rules_[i]->box();
-    for (size_t j = 0; j < num_result_boxes; ++j) {
-      TreeNode& child = children_[j];
-      if (rule_box.collide(child.box()))
-        child.add_rule(rules_[i]);
+
+  // Check for each result box whether it collides with at least one rule.
+  // If yes, add a corresponding tree node to the children.
+  for (size_t i = 0; i < num_result_boxes; ++i) {
+    const Box& node_box = result_boxes[i];
+    TreeNode node(node_box);
+    for (size_t j = 0; j < num_rules; ++j) {
+      if (rules_[j]->box().collide(node_box))
+        node.add_rule(rules_[j]);
     }
+    // add this node to the children if it is not empty
+    if (node.num_rules() > 0)
+      children_.push_back(node);
   }
   has_been_cut_ = true;
   cut_dim_ = dimension;
+  num_cuts_ = num_cuts;
 }
 
 
@@ -30,7 +32,7 @@ size_t TreeNode::space_measure() const {
   const size_t num_children = children_.size();
   for (size_t i = 0; i < num_children; ++i)
     space_measure += children_[i].rules().size();
-  space_measure += num_children;
+  space_measure += (num_cuts_ == 0 ? 0 : num_cuts_ + 1);
   return space_measure;
 }
 

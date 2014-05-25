@@ -13,10 +13,11 @@ class TreeNode {
 
 public:
   TreeNode(const DimVector& bounds)
-      : box_(bounds), has_been_cut_(false), cut_dim_(0), id_(0) {}
+      : box_(bounds), has_been_cut_(false), cut_dim_(0), id_(0),
+      num_cuts_(0) {}
 
   TreeNode(const Box& box) : box_(box), has_been_cut_(false), cut_dim_(0),
-      id_(0) {}
+      id_(0), num_cuts_(0) {}
 
   /*
    * Standard constructor to build a tree node.  rules is a vector of rules,
@@ -27,7 +28,7 @@ public:
    */
   TreeNode(const RuleVector& rules, const DomainTuple& domain) :
       box_(minimal_bounding_box(rules, domain)), has_been_cut_(false),
-      cut_dim_(0), id_(0) {
+      cut_dim_(0), id_(0), num_cuts_(0) {
   
     const size_t start = std::get<0>(domain);
     const size_t end = std::get<1>(domain);
@@ -38,7 +39,7 @@ public:
   /*
    * Cuts this node along the given dimension the specified number of times.
    * The new resulting nodes are then stored in the children_ vector.
-   * Also, calling this method sets the cut_dim_ member.
+   * Also, calling this method sets the cut_dim_ and num_cuts_ members.
    */
   void cut(const dim_t dimension, const size_t num_cuts);
   
@@ -53,6 +54,7 @@ public:
   inline void reset_cut() {
     children_.clear();
     has_been_cut_ = false;
+    num_cuts_ = 0;
   }
 
   /*
@@ -142,6 +144,7 @@ private:
   bool has_been_cut_;
   size_t cut_dim_;
   size_t id_;
+  size_t num_cuts_;
 
   inline size_t max(const size_t a, const size_t b) const {
     return a > b ? a : b;

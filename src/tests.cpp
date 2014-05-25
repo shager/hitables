@@ -31,9 +31,9 @@ using namespace std;
   Box rule3_box(rule3_bounds);                        \
   Rule rule3(DROP, rule3_box, "");                    \
                                                   \
-  node.add_rule(static_cast<const Rule*>(&rule1)); \
-  node.add_rule(static_cast<const Rule*>(&rule2)); \
-  node.add_rule(static_cast<const Rule*>(&rule3));
+  node.add_rule(&rule1); \
+  node.add_rule(&rule2); \
+  node.add_rule(&rule3);
 
 
 /*****************************************************************************
@@ -192,10 +192,35 @@ BOOST_AUTO_TEST_CASE(treenode_cut_small_rules) {
   }
   node.cut(0, 4);
   const std::vector<TreeNode>& children = node.children();
-  BOOST_CHECK_EQUAL(children.size(), 5);
+  BOOST_CHECK_EQUAL(children.size(), 4);
   BOOST_CHECK_EQUAL(children[0].rules().size(), 3);
   for (size_t i = 0; i < 10; ++i)
     delete rule_pointers[i];
+}
+
+
+BOOST_AUTO_TEST_CASE(treenode_cut_does_not_add_empty_child_nodes) {
+  DimVector dim1;
+  dim1.push_back(make_tuple(2, 2));
+  Box box1(dim1);
+  Rule rule1(DROP, box1, "a");
+
+  DimVector dim2;
+  dim2.push_back(make_tuple(7, 7));
+  Box box2(dim2);
+  Rule rule2(DROP, box2, "b");
+
+  DimVector node_dim;
+  node_dim.push_back(make_tuple(0, 10));
+  TreeNode node(node_dim);
+
+  node.add_rule(&rule1);
+  node.add_rule(&rule2);
+  // now cut the node 9 times in first dimension
+  node.cut(0, 9);
+  // the node should now have only 2 children instead of 10
+  const NodeVector& children = node.children();
+  BOOST_CHECK_EQUAL(children.size(), 2);
 }
 
 
