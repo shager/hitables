@@ -68,7 +68,7 @@ size_t TreeNode::dim_max_distinct_rules() const {
     max_distinct = max_distinct < num_distinct ? num_distinct : max_distinct;
     distinct_rules[i] = num_distinct;
   }
-  // gather all dimensions with the most number of distinct rules
+  // gather all dimensions with the highest number of distinct rules
   std::vector<size_t> max_dims;
   for (size_t i = 0; i < num_dims; ++i)
     if (distinct_rules[i] == max_distinct)
