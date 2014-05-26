@@ -1127,6 +1127,37 @@ BOOST_AUTO_TEST_CASE(arg_parse_min_rules) {
 }
 
 
+BOOST_AUTO_TEST_CASE(arg_parse_random_seed) {
+  Arguments args;
+  BOOST_CHECK_EQUAL(args.random_seed(), 0);
+  args.parse_random_seed("17");
+  BOOST_CHECK_EQUAL(args.random_seed(), 17);
+  args.parse_random_seed("65535");
+  BOOST_CHECK_EQUAL(args.random_seed(), 65535);
+  args.parse_random_seed("0");
+  BOOST_CHECK_EQUAL(args.random_seed(), 0);
+
+  StrVector fails;
+  fails.push_back("bla");
+  fails.push_back("-1");
+  fails.push_back("65536");
+  for (size_t i = 0; i < fails.size(); ++i) {
+    const string& fail = fails[i];
+    bool thrown = false;
+    try {
+      args.parse_random_seed(fail);
+    } catch (const string& msg) {
+      thrown = true;
+      stringstream ss;
+      ss << "Invalid parameter --random-seed ('" << fail << "'):";
+      ss << " must be an integer between 0 and 65535!";
+      BOOST_CHECK_EQUAL(ss.str(), msg);
+    }
+    BOOST_CHECK(thrown);
+  }
+}
+
+
 BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
   StrVector vector;
   vector.push_back("--binth");
@@ -1139,6 +1170,8 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
   vector.push_back("least-max");
   vector.push_back("--infile");
   vector.push_back("FILENAME");
+  vector.push_back("--random-seed");
+  vector.push_back("3");
 
   Arguments a1(Arguments::parse_arg_vector(vector));
   BOOST_CHECK_EQUAL(a1.binth(), 5);
@@ -1146,6 +1179,7 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
   BOOST_CHECK_EQUAL(a1.search(), Arguments::SEARCH_BINARY);
   BOOST_CHECK_EQUAL(a1.dim_choice(), Arguments::DIM_CHOICE_LEAST_MAX_RULES);
   BOOST_CHECK(a1.infile() == "FILENAME");
+  BOOST_CHECK_EQUAL(a1.random_seed(), 3);
 
   vector.clear();
   bool thrown = false;

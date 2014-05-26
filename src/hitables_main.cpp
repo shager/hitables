@@ -69,6 +69,7 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
+  srand(args.random_seed());
   Clock::time_point start, end;
   double time_span;
   std::stringstream out;

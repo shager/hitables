@@ -85,6 +85,12 @@ void Arguments::parse_search(const std::string& input) {
 }
 
 
+void Arguments::parse_random_seed(const std::string& input) {
+  const size_t random_seed(parse_int_param(input, "--random-seed", 0, 65535));
+  random_seed_ = random_seed;
+}
+
+
 inline void check_arg_index(const size_t index, const size_t max) {
   if (index >= max)
     throw std::string(
@@ -134,6 +140,11 @@ Arguments Arguments::parse_arg_vector(const StrVector& arg_vector) {
       check_arg_index(i, num_args);
       args.parse_infile(arg_vector[i]);
       infile_specified = true;
+
+    } else if (arg == "--random-seed") {
+      ++i;
+      check_arg_index(i, num_args);
+      args.parse_random_seed(arg_vector[i]);
 
     } else {
       std::stringstream ss;

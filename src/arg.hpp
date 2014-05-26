@@ -9,7 +9,7 @@ class Arguments {
 public:
   Arguments() : binth_(4), spfac_(4), dim_choice_(0),
       search_(Arguments::SEARCH_LINEAR), infile_(""), verbose_(false),
-      min_rules_(10) {}
+      min_rules_(10), random_seed_(0) {}
   
   Arguments& operator=(const Arguments& rhs) {
     binth_ = rhs.binth();
@@ -19,6 +19,7 @@ public:
     infile_ = rhs.infile();
     verbose_ = rhs.verbose();
     min_rules_ = rhs.min_rules();
+    random_seed_ = rhs.random_seed();
     return *this;
   }
 
@@ -66,6 +67,10 @@ public:
   inline const size_t min_rules() const {return min_rules_;}
   void parse_min_rules(const std::string& input);
 
+  // random seed
+  inline size_t random_seed() const {return random_seed_;}
+  void parse_random_seed(const std::string& input);
+
   /*
    * Parses an entire argument vector.
    * Returns an Arguments object in case of success or throws an std::string in
@@ -81,6 +86,7 @@ private:
   std::string infile_;
   bool verbose_;
   size_t min_rules_;
+  size_t random_seed_;
 
   size_t parse_int_param(const std::string& input,
       const std::string& param, const size_t min, const size_t max);
