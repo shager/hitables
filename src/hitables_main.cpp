@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
 
   Clock::time_point start, end;
   double time_span;
-  std::stringstream msg;
+  std::stringstream out;
 
   // parse rules
   RuleVector rules;
@@ -84,10 +84,8 @@ int main(int argc, char* argv[]) {
   const size_t num_rules = rules.size();
   const size_t num_chains = chains.size();
   rules.clear();
-  msg << "\nParsed " << num_rules << " rule" << (num_rules != 1 ? "s" : "")
-      << " (" << num_chains << " chain" << (num_chains != 1 ? "s" : "")
-      << ") in " << time_span << " seconds";
-  out_msg(msg.str(), args.verbose());
+  out << "# Parsing (" << num_rules << "): " << time_span << " seconds"
+      << std::endl;
 
   // extract relevant sub-rulesets
   std::vector<DomainVector> chain_domains;
@@ -101,10 +99,8 @@ int main(int argc, char* argv[]) {
   }
   end = Clock::now();
   time_span = duration(start, end);
-  std::stringstream domain_msg;
-  domain_msg << "Extracted " << num_domains << " sub-ruleset"
-      << (num_domains != 1 ? "s" : "") << " in " << time_span << " seconds";
-  out_msg(domain_msg.str(), args.verbose());
+  out << "# Sub-ruleset extraction (" << num_domains << "): " << time_span
+      << " seconds" << std::endl;
 
   // perform HiCuts transformation
   std::vector<NodeRefVector> chain_trees;
@@ -121,25 +117,37 @@ int main(int argc, char* argv[]) {
   }
   end = Clock::now();
   time_span = duration(start, end);
-  std::stringstream hicuts_msg;
-  hicuts_msg << "Performed HiCuts transformation in " << time_span
-      << " seconds";
-  out_msg(hicuts_msg.str(), args.verbose());
+  out << "# HiCuts transformation: " << time_span << " seconds" << std::endl;
 
   // generate the output
-  std::stringstream out;
-  Emitter::emit_prefix(out);
+  std::stringstream rule_out;
+  rule_out << std::endl;
+  std::vector<StrVector> chain_names;
+  start = Clock::now();
+  for (size_t i = 0; i < num_chains; ++i)
+    chain_names.push_back(StrVector());
   for (size_t i = 0; i < num_chains; ++i) {
-    std::stringstream chain_out;
-    StrVector chain_names;
-    Emitter emitter(chain_trees[i], chains[i], chain_domains[i], Arguments::SEARCH_LINEAR);
-    emitter.emit(chain_out, chain_names);
-    for (auto it = chain_names.begin(); it != chain_names.end(); ++it)
-      out << ":" << *it << " - [0:0]" << std::endl;
-    out << chain_out.str();
+    Emitter emitter(chain_trees[i], chains[i], chain_domains[i],
+        Arguments::SEARCH_LINEAR);
+    emitter.emit(rule_out, chain_names[i]);
   }
+
+  // emit chain names
+  std::stringstream chain_out;
+  for (auto i = chain_names.begin(); i != chain_names.end(); ++i)
+    for (auto j = i->begin(); j != i->end(); ++j)
+      chain_out << ":" << *j << " - [0:0]" << std::endl;
+  chain_out << std::endl;
+
+  // emit rule code
+  end = Clock::now();
+  time_span = duration(start, end);
+  out << "# iptables output generation: " << time_span << " seconds"
+      << std::endl << std::endl;
+  Emitter::emit_prefix(out);
+  out << chain_out.str() << rule_out.str();
   Emitter::emit_suffix(out);
-  std::cout << out.str() << std::endl;
+  std::cout << out.str();
 
   // cleanup
   for (size_t i = 0; i < num_chains; ++i) {
@@ -154,6 +162,5 @@ int main(int argc, char* argv[]) {
       delete chain[j];
   }
 
-  out_msg("", args.verbose());
   return EXIT_SUCCESS;
 }
