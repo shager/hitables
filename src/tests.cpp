@@ -118,34 +118,6 @@ BOOST_AUTO_TEST_CASE(box_collide_two_dimensions) {
   BOOST_CHECK(!box4.collide(box1));
 }
 
-
-BOOST_AUTO_TEST_CASE(box_num_distinct_boxes_in_dim) {
-  DimVector rule1_bounds;
-  rule1_bounds.push_back(make_tuple(1, 2));
-  Box rule1(rule1_bounds);
-
-  DimVector rule2_bounds;
-  rule2_bounds.push_back(make_tuple(3, 4));
-  Box rule2(rule2_bounds);
-
-  DimVector rule3_bounds;
-  rule3_bounds.push_back(make_tuple(5, 6));
-  Box rule3(rule3_bounds);
-
-  std::vector<const Box*> rules;
-  rules.push_back(&rule1);
-  rules.push_back(&rule2);
-  rules.push_back(&rule3);
-  BOOST_CHECK_EQUAL(Box::num_distinct_boxes_in_dim(0, rules), 3);
-
-  DimVector rule4_bounds;
-  rule4_bounds.push_back(make_tuple(1, 6));
-  Box rule4(rule4_bounds);
-
-  rules.push_back(&rule4);
-  BOOST_CHECK_EQUAL(Box::num_distinct_boxes_in_dim(0, rules), 0);
-}
-
 /*****************************************************************************
  *                         A C T I O N   T E S T S                           *
  *****************************************************************************/
@@ -1290,3 +1262,36 @@ BOOST_AUTO_TEST_CASE(rule_src_with_patched_chain) {
       std::string("-A blablub -p tcp -j DROP"));
   delete rule;
 }
+
+
+BOOST_AUTO_TEST_CASE(rule_num_distinct_rules_in_dim) {
+  DimVector rule1_bounds;
+  rule1_bounds.push_back(make_tuple(1, 2));
+  Box box1(rule1_bounds);
+  Rule rule1(DROP, box1, "");
+
+  DimVector rule2_bounds;
+  rule2_bounds.push_back(make_tuple(3, 4));
+  Box box2(rule2_bounds);
+  Rule rule2(DROP, box2, "");
+
+  DimVector rule3_bounds;
+  rule3_bounds.push_back(make_tuple(5, 6));
+  Box box3(rule3_bounds);
+  Rule rule3(DROP, box3, "");
+
+  std::vector<const Rule*> rules;
+  rules.push_back(&rule1);
+  rules.push_back(&rule2);
+  rules.push_back(&rule3);
+  BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(0, rules), 3);
+
+  DimVector rule4_bounds;
+  rule4_bounds.push_back(make_tuple(1, 6));
+  Box box4(rule4_bounds);
+  Rule rule4(DROP, box4, "");
+
+  rules.push_back(&rule4);
+  BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(0, rules), 0);
+}
+
