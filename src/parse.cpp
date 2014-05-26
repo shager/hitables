@@ -274,7 +274,7 @@ Rule* parse::parse_rule(const std::string& input) {
     } else if (word == "-j") {
       ++i;
       check_index(i, len, "Invalid jump (-j) specification");
-      ActionCode code;
+      ActionCode code(NONE);
       try {
         code = parse::parse_action_code(parts[i]);
       } catch (const int err_code) {

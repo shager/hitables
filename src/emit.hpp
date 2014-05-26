@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include "treenode.hpp"
+//#include "parse.hpp"
 
 class Emitter {
 public:
@@ -17,7 +18,7 @@ public:
    * Computes the iptables representation of the given HiTables instance and
    * writes it to the specified out stream.
    */
-  void emit(std::stringstream& out);
+  void emit(std::stringstream& out, StrVector& chains);
 
   static void emit_prefix(std::stringstream& out);
 
@@ -28,15 +29,15 @@ public:
 
   void emit_tree(TreeNode* tree, const std::string& chain,
       const size_t tree_id, const std::string& next_chain,
-      const bool leaf_jump, std::stringstream& out);
+      const bool leaf_jump, std::stringstream& out, StrVector& chains);
 
   void emit_tree_linear_search(TreeNode* tree, const std::string& chain,
       const size_t tree_id, const std::string& next_chain,
-      const bool leaf_jump, std::stringstream& out);
+      const bool leaf_jump, std::stringstream& out, StrVector& chains);
 
   void emit_simple_linear_dispatch(TreeNode* node,
       const std::string& chain, const size_t tree_id,
-      const size_t chain_count, std::stringstream& out);
+      const size_t chain_count, std::stringstream& out, StrVector& chains);
 
   void emit_leaf(const TreeNode* node, const std::string& current_chain,
       const std::string& next_chain, const bool leaf_jump,

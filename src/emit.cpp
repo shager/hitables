@@ -16,7 +16,7 @@ std::string build_chain_name(const std::string& chain, const size_t chain_id) {
 }
 
 
-void Emitter::emit(std::stringstream& out) {
+void Emitter::emit(std::stringstream& out, StrVector& chains) {
   const size_t num_rules = rules_.size();
   const size_t num_trees = trees_.size();
   if (num_rules == 0)
@@ -28,6 +28,8 @@ void Emitter::emit(std::stringstream& out) {
 
   size_t i = 0;
   for (size_t j = 0; j < num_trees; ++j) {
+    if (j > 0)
+      chains.push_back(sub_chain);
     const DomainTuple& domain = domains_[j];
     const size_t start = std::get<0>(domain);
     const size_t end = std::get<1>(domain);
@@ -37,11 +39,13 @@ void Emitter::emit(std::stringstream& out) {
     }
     i = end + 1;
     const bool leaf_jump = i != num_rules;
-    emit_tree(trees_[j], sub_chain, j, next_sub_chain, leaf_jump, out);
+    emit_tree(trees_[j], sub_chain, j, next_sub_chain, leaf_jump, out, chains);
     sub_chain = next_sub_chain;
     ++sub_chain_id;
     next_sub_chain = build_chain_name(chain, sub_chain_id);
   }
+  if ((i < num_rules) && (num_trees > 0))
+    chains.push_back(sub_chain);
   for (; i < num_rules; ++i)
     emit_non_applicable_rule(rules_[i], sub_chain, out);
 }
@@ -49,22 +53,24 @@ void Emitter::emit(std::stringstream& out) {
 
 void Emitter::emit_tree(TreeNode* tree, const std::string& chain,
     const size_t tree_id, const std::string& next_chain,
-    const bool leaf_jump, std::stringstream& out) {
+    const bool leaf_jump, std::stringstream& out, StrVector& chains) {
 
   if (search_ == Arguments::SEARCH_LINEAR)
-    emit_tree_linear_search(tree, chain, tree_id, next_chain, leaf_jump, out);
+    emit_tree_linear_search(tree, chain, tree_id, next_chain, leaf_jump, out,
+        chains);
 }
 
 
 void Emitter::emit_tree_linear_search(TreeNode* tree,
     const std::string& chain, const size_t tree_id,
     const std::string& next_chain, const bool leaf_jump,
-    std::stringstream& out) {
+    std::stringstream& out, StrVector& chains) {
 
   tree->compute_numbering();
   std::string start_chain(build_tree_chain_name(chain, tree_id, tree->id()));
   out << "# Tree " << tree_id << " for Chain " << chain << std::endl;
   out << "-A " << chain << " -j " << start_chain << std::endl;
+  chains.push_back(start_chain);
   NodeRefQueue node_fifo;
   node_fifo.push(tree);
 
@@ -75,7 +81,8 @@ void Emitter::emit_tree_linear_search(TreeNode* tree,
       emit_leaf(node, build_tree_chain_name(chain, tree_id, node->id()),
           next_chain, leaf_jump, out);
     else {
-      emit_simple_linear_dispatch(node, chain, tree_id, node->id(), out);
+      emit_simple_linear_dispatch(node, chain, tree_id, node->id(), out,
+          chains);
       // now ensure that all children of this node are traversed
       NodeVector& children = node->children();
       const size_t num_children = children.size();
@@ -90,7 +97,7 @@ void Emitter::emit_tree_linear_search(TreeNode* tree,
 void emit_linear_ip_dispatch(TreeNode* node, 
     const std::string& chain, const size_t tree_id,
     const size_t chain_count, const std::string& flag,
-    const size_t dim, std::stringstream& out) {
+    const size_t dim, std::stringstream& out, StrVector& chains) {
 
   NodeVector& children = node->children();
   const size_t num_children = children.size();
@@ -104,11 +111,13 @@ void emit_linear_ip_dispatch(TreeNode* node,
   for (size_t i = 0; i < num_children; ++i) {
     TreeNode& child = children[i];
     const DimTuple& range = child.box().box_bounds()[dim];
+    std::string jump_chain(build_tree_chain_name(chain, tree_id, child.id()));
+    chains.push_back(jump_chain);
     out << "-A " << current_chain
         << " -m iprange --" << flag << "-range "
         << Emitter::num_to_ip(std::get<0>(range)) << "-"
         << Emitter::num_to_ip(std::get<1>(range)) << " -j "
-        << build_tree_chain_name(chain, tree_id, child.id())
+        << jump_chain
         << std::endl;
   }
   out << std::endl;
@@ -118,7 +127,7 @@ void emit_linear_ip_dispatch(TreeNode* node,
 void emit_linear_port_dispatch(TreeNode* node, 
     const std::string& chain, const size_t tree_id,
     const size_t chain_count, const std::string& flag,
-    const size_t dim, std::stringstream& out) {
+    const size_t dim, std::stringstream& out, StrVector& chains) {
 
   std::string current_chain(build_tree_chain_name(chain, tree_id,
       chain_count));
@@ -129,10 +138,12 @@ void emit_linear_port_dispatch(TreeNode* node,
   for (size_t i = 0; i < num_children; ++i) {
     TreeNode& child = children[i];
     const DimTuple& range = child.box().box_bounds()[dim];
+    std::string jump_chain(build_tree_chain_name(chain, tree_id, child.id()));
+    chains.push_back(jump_chain);
     out << "-A " << current_chain
         << " -p " << node->prot() << " --" << flag << " "
         << std::get<0>(range) << ":" << std::get<1>(range) << " -j "
-        << build_tree_chain_name(chain, tree_id, child.id())
+        << jump_chain
         << std::endl;
   }
   out << std::endl;
@@ -141,29 +152,29 @@ void emit_linear_port_dispatch(TreeNode* node,
 
 void Emitter::emit_simple_linear_dispatch(TreeNode* node,
     const std::string& chain, const size_t tree_id,
-    const size_t chain_count, std::stringstream& out) {
+    const size_t chain_count, std::stringstream& out, StrVector& chains) {
 
   const size_t cut_dim = node->cut_dim();
   switch (cut_dim) {
     // src port
     case 0:
       emit_linear_port_dispatch(node, chain, tree_id, chain_count, "sport",
-          cut_dim, out);
+          cut_dim, out, chains);
       break;
     // dst port
     case 1:
       emit_linear_port_dispatch(node, chain, tree_id, chain_count, "dport",
-          cut_dim, out);
+          cut_dim, out, chains);
       break;
     // src address
     case 2:
       emit_linear_ip_dispatch(node, chain, tree_id, chain_count, "src",
-          cut_dim, out);
+          cut_dim, out, chains);
       break;
     // dst address
     case 3:
       emit_linear_ip_dispatch(node, chain, tree_id, chain_count, "dst",
-          cut_dim, out);
+          cut_dim, out, chains);
   }
 }
 
@@ -175,7 +186,6 @@ void Emitter::emit_leaf(const TreeNode* node, const std::string& current_chain,
   const size_t num_rules = node->num_rules();
   if (num_rules == 0)
     return;
-
   out << "# leaf node" << std::endl;
   for (size_t i = 0; i < num_rules; ++i) {
     out << node->rules()[i]->src_with_patched_chain(current_chain)

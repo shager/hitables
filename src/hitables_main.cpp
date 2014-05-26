@@ -128,10 +128,17 @@ int main(int argc, char* argv[]) {
 
   // generate the output
   std::stringstream out;
+  Emitter::emit_prefix(out);
   for (size_t i = 0; i < num_chains; ++i) {
+    std::stringstream chain_out;
+    StrVector chain_names;
     Emitter emitter(chain_trees[i], chains[i], chain_domains[i], Arguments::SEARCH_LINEAR);
-    emitter.emit(out);
+    emitter.emit(chain_out, chain_names);
+    for (auto it = chain_names.begin(); it != chain_names.end(); ++it)
+      out << ":" << *it << " - [0:0]" << std::endl;
+    out << chain_out.str();
   }
+  Emitter::emit_suffix(out);
   std::cout << out.str() << std::endl;
 
   // cleanup
