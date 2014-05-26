@@ -1295,3 +1295,53 @@ BOOST_AUTO_TEST_CASE(rule_num_distinct_rules_in_dim) {
   BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(0, rules), 0);
 }
 
+
+BOOST_AUTO_TEST_CASE(rule_num_distinct_rules_in_dim_2) {
+  DimVector dims;
+  dims.push_back(make_tuple(1, 3));
+  dims.push_back(make_tuple(3, 4));
+  Box box1(dims);
+  Rule rule1(DROP, box1, "");
+  dims.clear();
+
+  dims.push_back(make_tuple(2, 4));
+  dims.push_back(make_tuple(3, 5));
+  Box box2(dims);
+  Rule rule2(DROP, box2, "");
+  dims.clear();
+
+  dims.push_back(make_tuple(1, 3));
+  dims.push_back(make_tuple(1, 2));
+  Box box3(dims);
+  Rule rule3(DROP, box3, "");
+  dims.clear();
+
+  std::vector<const Rule*> rules;
+  rules.push_back(&rule1);
+  rules.push_back(&rule2);
+  rules.push_back(&rule3);
+
+  BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(0, rules), 0);
+  BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(1, rules), 1);
+
+  dims.push_back(make_tuple(6, 7));
+  dims.push_back(make_tuple(1, 2));
+  Box box4(dims);
+  Rule rule4(DROP, box4, "");
+  dims.clear();
+  rules.push_back(&rule4);
+
+  BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(0, rules), 1);
+  BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(1, rules), 0);
+
+  dims.push_back(make_tuple(6, 7));
+  dims.push_back(make_tuple(4, 5));
+  Box box5(dims);
+  Rule rule5(DROP, box5, "");
+  dims.clear();
+  rules.push_back(&rule5);
+
+  BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(0, rules), 0);
+  BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(1, rules), 0);
+}
+
