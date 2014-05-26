@@ -1345,3 +1345,15 @@ BOOST_AUTO_TEST_CASE(rule_num_distinct_rules_in_dim_2) {
   BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(1, rules), 0);
 }
 
+
+BOOST_AUTO_TEST_CASE(rule_num_distinct_rules_in_dim_corner_cases) {
+  std::vector<const Rule*> rules;
+  BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(0, rules), 0);
+
+  DimVector dims;
+  dims.push_back(make_tuple(1, 1));
+  Box box(dims);
+  Rule rule(DROP, box, "");
+  rules.push_back(&rule);
+  BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(0, rules), 1);
+}

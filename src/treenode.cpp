@@ -63,8 +63,9 @@ size_t TreeNode::dim_max_distinct_rules() const {
   const size_t num_dims = box_.num_dims();
   size_t* distinct_rules = new size_t[num_dims];
   size_t max_distinct = 0;
+  std::vector<const Rule*> rules_copy(rules_);
   for (size_t i = 0; i < num_dims; ++i) {
-    const size_t num_distinct = Rule::num_distinct_rules_in_dim(i, rules_);
+    const size_t num_distinct = Rule::num_distinct_rules_in_dim(i, rules_copy);
     max_distinct = max_distinct < num_distinct ? num_distinct : max_distinct;
     distinct_rules[i] = num_distinct;
   }

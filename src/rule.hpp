@@ -4,6 +4,7 @@
 #include "box.hpp"
 #include "action.hpp"
 #include <sstream>
+#include <algorithm>
   
 const dim_t ICMP = 1;
 const dim_t TCP = 6;
@@ -54,7 +55,7 @@ public:
   inline const std::string& chain() const {return chain_;}
 
   static size_t num_distinct_rules_in_dim(const size_t dim,
-      const std::vector<const Rule*>& rules);
+      std::vector<const Rule*>& rules);
 
   bool operator==(const Rule& other) const;
 
