@@ -19,9 +19,9 @@ public:
    */
   void emit(std::stringstream& out);
 
-  void emit_prefix(std::stringstream& out);
+  static void emit_prefix(std::stringstream& out);
 
-  void emit_suffix(std::stringstream& out);
+  static void emit_suffix(std::stringstream& out);
 
   void emit_non_applicable_rule(const Rule* rule, const std::string& chain,
       std::stringstream& out);

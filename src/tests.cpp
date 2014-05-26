@@ -1200,19 +1200,17 @@ BOOST_AUTO_TEST_CASE(emit_emit_non_applicable_rule) {
 
 
 BOOST_AUTO_TEST_CASE(emit_emit_prefix) {
-  Emitter e(NodeRefVector(), RuleVector(), DomainVector(), 0);
   stringstream ss, out;
   ss << "*filter\n" << ":INPUT ACCEPT [0:0]\n" << ":FORWARD ACCEPT [0:0]\n"
       << ":OUTPUT ACCEPT [0:0]\n";
-  e.emit_prefix(out);
+  Emitter::emit_prefix(out);
   BOOST_CHECK_EQUAL(ss.str(), out.str());
 }
 
 
 BOOST_AUTO_TEST_CASE(emit_emit_suffix) {
-  Emitter e(NodeRefVector(), RuleVector(), DomainVector(), 0);
   stringstream out;
-  e.emit_suffix(out);
+  Emitter::emit_suffix(out);
   BOOST_CHECK_EQUAL("COMMIT\n", out.str());
 }
 
