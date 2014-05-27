@@ -54,8 +54,6 @@ private:
 };
 
 
-///#include <iostream>
-
 class BinSearchTree {
 public:
 
@@ -64,9 +62,6 @@ public:
       right_(nullptr) {
   
     const size_t diff = end - start;
-    ///std::cout << "start = " << start << std::endl;
-    ///std::cout << "end   = " << end << std::endl;
-    ///std::cout << "diff  = " << diff << std::endl << std::endl;
     if (diff == 0)
       return;
     if (lookup_index_ > start)
