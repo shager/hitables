@@ -284,7 +284,7 @@ void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
           << " --" << flag << "-range "
           << " " << Emitter::num_to_ip(
               std::get<0>(lookup_child.box().box_bounds()[cut_dim]))
-          << ":" << Emitter::num_to_ip(
+          << "-" << Emitter::num_to_ip(
               std::get<1>(lookup_child.box().box_bounds()[cut_dim]))
           << " -j " << target_chain << std::endl;
       // emit test on the left child, if it exists
@@ -300,7 +300,7 @@ void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
             << " --" << flag << "-range "
             << " " << Emitter::num_to_ip(
                 std::get<0>(bbox.box_bounds()[cut_dim]))
-            << ":" << Emitter::num_to_ip(
+            << "-" << Emitter::num_to_ip(
                 std::get<1>(bbox.box_bounds()[cut_dim]))
             << " -j " << target_chain << std::endl;
         // ensure that the search continues on the left child
