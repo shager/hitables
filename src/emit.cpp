@@ -51,17 +51,7 @@ void Emitter::emit(std::stringstream& out, StrVector& chains) {
 }
 
 
-void Emitter::emit_tree(TreeNode* tree, const std::string& chain,
-    const size_t tree_id, const std::string& next_chain,
-    const bool leaf_jump, std::stringstream& out, StrVector& chains) {
-
-  if (search_ == Arguments::SEARCH_LINEAR)
-    emit_tree_linear_search(tree, chain, tree_id, next_chain, leaf_jump, out,
-        chains);
-}
-
-
-void Emitter::emit_tree_linear_search(TreeNode* tree,
+void Emitter::emit_tree(TreeNode* tree,
     const std::string& chain, const size_t tree_id,
     const std::string& next_chain, const bool leaf_jump,
     std::stringstream& out, StrVector& chains) {
@@ -81,8 +71,13 @@ void Emitter::emit_tree_linear_search(TreeNode* tree,
       emit_leaf(node, build_tree_chain_name(chain, tree_id, node->id()),
           next_chain, leaf_jump, out);
     else {
-      emit_simple_linear_dispatch(node, chain, tree_id, node->id(), out,
-          chains);
+      // emit the dispatch to child nodes
+      if (search_ == Arguments::SEARCH_LINEAR)
+        emit_simple_linear_dispatch(node, chain, tree_id, node->id(), out,
+            chains);
+      else if (search_ == Arguments::SEARCH_BINARY)
+        emit_simple_binary_dispatch(node, chain, tree_id, node->id(), out,
+            chains);
       // now ensure that all children of this node are traversed
       NodeVector& children = node->children();
       const size_t num_children = children.size();
@@ -174,6 +169,54 @@ void Emitter::emit_simple_linear_dispatch(TreeNode* node,
     // dst address
     case 3:
       emit_linear_ip_dispatch(node, chain, tree_id, chain_count, "dst",
+          cut_dim, out, chains);
+  }
+}
+
+
+
+void emit_binary_port_dispatch(TreeNode* node, const std::string& chain,
+    const size_t tree_id, const size_t chain_count, const std::string& flag,
+    const size_t cut_dim, std::stringstream& out, StrVector& chains) {
+
+  std::string search_chain(build_tree_chain_name(chain, tree_id, chain_count));
+  out << "# Binary search on " << flag << ", chain " << chain << std::endl;
+
+}
+
+
+void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
+    const size_t tree_id, const size_t chain_count, const std::string& flag,
+    const size_t cut_dim, std::stringstream& out, StrVector& chains) {
+
+  
+}
+
+
+void Emitter::emit_simple_binary_dispatch(TreeNode* node,
+    const std::string& chain, const size_t tree_id,
+    const size_t chain_count, std::stringstream& out, StrVector& chains) {
+
+  const size_t cut_dim = node->cut_dim();
+  switch (cut_dim) {
+    // src port
+    case 0:
+      emit_binary_port_dispatch(node, chain, tree_id, chain_count, "sport",
+          cut_dim, out, chains);
+      break;
+    // dst port
+    case 1:
+      emit_binary_port_dispatch(node, chain, tree_id, chain_count, "dport",
+          cut_dim, out, chains);
+      break;
+    // src address
+    case 2:
+      emit_binary_ip_dispatch(node, chain, tree_id, chain_count, "src",
+          cut_dim, out, chains);
+      break;
+    // dst address
+    case 3:
+      emit_binary_ip_dispatch(node, chain, tree_id, chain_count, "dst",
           cut_dim, out, chains);
   }
 }

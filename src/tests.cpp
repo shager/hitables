@@ -1357,3 +1357,110 @@ BOOST_AUTO_TEST_CASE(rule_num_distinct_rules_in_dim_corner_cases) {
   rules.push_back(&rule);
   BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(0, rules), 1);
 }
+
+/*****************************************************************************
+ *                 B I N S E A R C H T R E E   T E S T S                     *
+ *****************************************************************************/
+
+BOOST_AUTO_TEST_CASE(binsearchtree_simple_leaf) {
+  BinSearchTree tree(5, 5);
+  BOOST_CHECK(tree.is_leaf());
+  BOOST_CHECK_EQUAL(tree.start(), 5);
+  BOOST_CHECK_EQUAL(tree.end(), 5);
+  BOOST_CHECK_EQUAL(tree.lookup_index(), 5);
+  BOOST_CHECK(!tree.has_left_child());
+  BOOST_CHECK(!tree.has_right_child());
+}
+
+
+BOOST_AUTO_TEST_CASE(binsearchtree_small_tree) {
+  BinSearchTree tree(0, 1);
+  BOOST_CHECK(!tree.has_left_child());
+  BOOST_CHECK(tree.has_right_child());
+  BOOST_CHECK_EQUAL(tree.lookup_index(), 0);
+  BOOST_CHECK_EQUAL(tree.start(), 0);
+  BOOST_CHECK_EQUAL(tree.end(), 1);
+
+  // check right child
+  const BinSearchTree* right = tree.right();
+  BOOST_CHECK(right->is_leaf());
+  BOOST_CHECK_EQUAL(right->lookup_index(), 1);
+  BOOST_CHECK_EQUAL(right->start(), 1);
+  BOOST_CHECK_EQUAL(right->end(), 1);
+  BOOST_CHECK(!right->has_left_child());
+  BOOST_CHECK(!right->has_right_child());
+}
+
+
+BOOST_AUTO_TEST_CASE(binsearchtree_build_full_tree) {
+  BinSearchTree tree(0, 10);
+  BOOST_CHECK_EQUAL(tree.lookup_index(), 5);
+  BOOST_CHECK_EQUAL(tree.start(), 0);
+  BOOST_CHECK_EQUAL(tree.end(), 10);
+  BOOST_CHECK(!tree.is_leaf());
+
+  const BinSearchTree* left = tree.left();
+  const BinSearchTree* right = tree.right();
+
+  BOOST_CHECK_EQUAL(left->lookup_index(), 2);
+  BOOST_CHECK_EQUAL(left->start(), 0);
+  BOOST_CHECK_EQUAL(left->end(), 4);
+  BOOST_CHECK(!left->is_leaf());
+
+  BOOST_CHECK_EQUAL(right->lookup_index(), 8);
+  BOOST_CHECK_EQUAL(right->start(), 6);
+  BOOST_CHECK_EQUAL(right->end(), 10);
+  BOOST_CHECK(!right->is_leaf());
+
+  left = tree.left()->left();
+  right = tree.left()->right();
+
+  // check left subtree
+
+  BOOST_CHECK_EQUAL(left->lookup_index(), 0);
+  BOOST_CHECK_EQUAL(left->start(), 0);
+  BOOST_CHECK_EQUAL(left->end(), 1);
+  BOOST_CHECK(!left->is_leaf());
+  BOOST_CHECK(!left->has_left_child());
+
+  BOOST_CHECK_EQUAL(left->right()->lookup_index(), 1);
+  BOOST_CHECK_EQUAL(left->right()->start(), 1);
+  BOOST_CHECK_EQUAL(left->right()->end(), 1);
+  BOOST_CHECK(left->right()->is_leaf());
+
+  BOOST_CHECK_EQUAL(right->lookup_index(), 3);
+  BOOST_CHECK_EQUAL(right->start(), 3);
+  BOOST_CHECK_EQUAL(right->end(), 4);
+  BOOST_CHECK(!right->is_leaf());
+  BOOST_CHECK(!right->has_left_child());
+
+  BOOST_CHECK_EQUAL(right->right()->lookup_index(), 4);
+  BOOST_CHECK_EQUAL(right->right()->start(), 4);
+  BOOST_CHECK_EQUAL(right->right()->end(), 4);
+  BOOST_CHECK(right->right()->is_leaf());
+
+  // check right subtree
+
+  left = tree.right()->left();
+  right = tree.right()->right();
+
+  BOOST_CHECK_EQUAL(left->lookup_index(), 6);
+  BOOST_CHECK_EQUAL(left->start(), 6);
+  BOOST_CHECK_EQUAL(left->end(), 7);
+  BOOST_CHECK(!left->is_leaf());
+
+  BOOST_CHECK_EQUAL(right->lookup_index(), 9);
+  BOOST_CHECK_EQUAL(right->start(), 9);
+  BOOST_CHECK_EQUAL(right->end(), 10);
+  BOOST_CHECK(!right->is_leaf());
+
+  BOOST_CHECK_EQUAL(left->right()->lookup_index(), 7);
+  BOOST_CHECK_EQUAL(left->right()->start(), 7);
+  BOOST_CHECK_EQUAL(left->right()->end(), 7);
+  BOOST_CHECK(left->right()->is_leaf());
+
+  BOOST_CHECK_EQUAL(right->right()->lookup_index(), 10);
+  BOOST_CHECK_EQUAL(right->right()->start(), 10);
+  BOOST_CHECK_EQUAL(right->right()->end(), 10);
+  BOOST_CHECK(right->right()->is_leaf());
+}
