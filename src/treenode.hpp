@@ -9,6 +9,12 @@
 #include "rule.hpp"
 #include "arg.hpp"
 
+class TreeNode;
+typedef std::stack<TreeNode*> NodeRefStack;
+typedef std::queue<TreeNode*> NodeRefQueue;
+typedef std::vector<TreeNode> NodeVector;
+typedef std::vector<TreeNode*> NodeRefVector;
+
 class TreeNode {
 
 public:
@@ -27,8 +33,8 @@ public:
    * rules.
    */
   TreeNode(const RuleVector& rules, const DomainTuple& domain) :
-      box_(minimal_bounding_box(rules, domain)), has_been_cut_(false),
-      cut_dim_(0), id_(0), num_cuts_(0) {
+      box_(TreeNode::minimal_bounding_box(rules, domain)),
+      has_been_cut_(false), cut_dim_(0), id_(0), num_cuts_(0) {
   
     const size_t start = std::get<0>(domain);
     const size_t end = std::get<1>(domain);
@@ -112,6 +118,8 @@ public:
 
   inline std::vector<TreeNode>& children() {return children_;}
 
+  inline size_t num_children() const {return children_.size();}
+
   inline const std::vector<const Rule*> rules() const {return rules_;}
 
   inline size_t cut_dim() const {return cut_dim_;}
@@ -137,6 +145,19 @@ public:
    */
   void compute_numbering();
 
+  /*
+   * Computes the minimal bounding box around the rules specified by domain.
+   */
+  static Box minimal_bounding_box(const RuleVector& rules,
+      const DomainTuple& domain);
+
+  /*
+   * Computes the minimal bounding box around the tree nodes specified by
+   * domain.
+   */
+  static Box minimal_bounding_box(const NodeVector& rules,
+      const DomainTuple& domain);
+
 private:
   Box box_;
   std::vector<const Rule*> rules_;
@@ -153,17 +174,6 @@ private:
   inline size_t min(const size_t a, const size_t b) const {
     return a < b ? a : b;
   }
-
-  /*
-   * Computes the minimal bounding box around the rules specified by domain.
-   */
-  Box minimal_bounding_box(const RuleVector& rules, const DomainTuple& domain);
-
 };
-
-typedef std::stack<TreeNode*> NodeRefStack;
-typedef std::queue<TreeNode*> NodeRefQueue;
-typedef std::vector<TreeNode> NodeVector;
-typedef std::vector<TreeNode*> NodeRefVector;
 
 #endif // HITABLES_TREENODE_HPP

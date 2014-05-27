@@ -93,6 +93,8 @@ public:
 
   inline size_t lookup_index() const {return lookup_index_;}
 
+  inline DomainTuple borders() const {return std::make_tuple(start_, end_);}
+
 private:
   size_t start_;
   size_t end_;

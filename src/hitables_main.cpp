@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     chain_names.push_back(StrVector());
   for (size_t i = 0; i < num_chains; ++i) {
     Emitter emitter(chain_trees[i], chains[i], chain_domains[i],
-        Arguments::SEARCH_LINEAR);
+        args.search());
     emitter.emit(rule_out, chain_names[i]);
   }
 
