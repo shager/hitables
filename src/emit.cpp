@@ -16,6 +16,15 @@ std::string build_chain_name(const std::string& chain, const size_t chain_id) {
 }
 
 
+std::string build_bin_search_name(const std::string& chain,
+    const size_t tree_id, const size_t chain_id, const size_t bin_search_id) {
+
+  std::stringstream ss;
+  ss << chain << "_" << tree_id << "_" << chain_id << "_" << bin_search_id;
+  return ss.str();
+}
+
+
 void Emitter::emit(std::stringstream& out, StrVector& chains) {
   const size_t num_rules = rules_.size();
   const size_t num_trees = trees_.size();
@@ -59,7 +68,8 @@ void Emitter::emit_tree(TreeNode* tree,
   tree->compute_numbering();
   std::string start_chain(build_tree_chain_name(chain, tree_id, tree->id()));
   out << "# Tree " << tree_id << " for Chain " << chain << std::endl;
-  out << "-A " << chain << " -j " << start_chain << std::endl;
+  out << "-A " << chain << " -p " << tree->prot() 
+      << " -j " << start_chain << std::endl;
   chains.push_back(start_chain);
   NodeRefQueue node_fifo;
   node_fifo.push(tree);
@@ -207,6 +217,7 @@ void emit_binary_port_dispatch(TreeNode* node, const std::string& chain,
       std::string target_chain(
           build_tree_chain_name(chain, tree_id, lookup_child.id()));
       chains.push_back(target_chain);
+      out << "# check if binary search terminates" << std::endl;
       out << "-A " << search_chain 
           << " -p " << lookup_child.prot()
           << " --" << flag
@@ -216,11 +227,14 @@ void emit_binary_port_dispatch(TreeNode* node, const std::string& chain,
       // emit test on the left child, if it exists
       if (bin_node->has_left_child()) {
         const BinSearchTree* left_node = bin_node->left();
-        target_chain = build_chain_name(current_chain,
+        //target_chain = build_chain_name(search_chain,
+        //    left_node->lookup_index());
+        target_chain = build_bin_search_name(chain, tree_id, chain_count,
             left_node->lookup_index());
         chains.push_back(target_chain);
         Box bbox(TreeNode::minimal_bounding_box(hicuts_children,
             left_node->borders()));
+        out << "# binary search left branch" << std::endl;
         out << "-A " << search_chain
             << " -p " << lookup_child.prot()
             << " --" << flag
@@ -231,8 +245,11 @@ void emit_binary_port_dispatch(TreeNode* node, const std::string& chain,
         fifo.push(bin_node->left());
       }
       // forward to right child
+      out << "# binary search right branch" << std::endl;
       const BinSearchTree* right_node = bin_node->right();
-      target_chain = build_chain_name(current_chain,
+      //target_chain = build_chain_name(search_chain,
+      //    right_node->lookup_index());
+      target_chain = build_bin_search_name(chain, tree_id, chain_count,
           right_node->lookup_index());
       chains.push_back(target_chain);
       out << "-A " << search_chain
@@ -275,6 +292,7 @@ void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
     } else {
       // perform the binary dispatch
       // emit test on the lookup HiCuts node
+      out << "# check if binary search terminates" << std::endl;
       const TreeNode& lookup_child = hicuts_children[lookup_index];
       std::string target_chain(
           build_tree_chain_name(chain, tree_id, lookup_child.id()));
@@ -289,9 +307,12 @@ void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
           << " -j " << target_chain << std::endl;
       // emit test on the left child, if it exists
       if (bin_node->has_left_child()) {
+        out << "# binary search left branch" << std::endl;
         const BinSearchTree* left_node = bin_node->left();
-        target_chain = build_chain_name(
-            current_chain, left_node->lookup_index());
+        //target_chain = build_chain_name(
+        //    search_chain, left_node->lookup_index());
+        target_chain = build_bin_search_name(chain, tree_id, chain_count,
+            left_node->lookup_index());
         chains.push_back(target_chain);
         Box bbox(TreeNode::minimal_bounding_box(hicuts_children,
             left_node->borders()));
@@ -307,8 +328,11 @@ void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
         fifo.push(bin_node->left());
       }
       // forward to right child
+      out << "# binary search right branch" << std::endl;
       const BinSearchTree* right_node = bin_node->right();
-      target_chain = build_chain_name(current_chain,
+      //target_chain = build_chain_name(search_chain,
+      //    right_node->lookup_index());
+      target_chain = build_bin_search_name(chain, tree_id, chain_count,
           right_node->lookup_index());
       chains.push_back(target_chain);
       out << "-A " << search_chain
