@@ -205,3 +205,12 @@ void TreeNode::compute_numbering() {
       node_stack.push(&children[i]);
   }
 }
+
+
+void TreeNode::add_rule(const Rule* rule) {
+  const size_t num_rules_ = num_rules();
+  for (size_t i = 0; i < num_rules_; ++i)
+    if (rule->is_shadowed(rules_[i], box_))
+      return;
+  rules_.push_back(rule);
+}

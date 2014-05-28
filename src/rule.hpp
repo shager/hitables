@@ -69,6 +69,12 @@ public:
 
   inline dim_t protocol() const {return protocol_;}
 
+  /*
+   * Checks whether this rule is shadowed by another rule within the given
+   * frame.
+   */
+  bool is_shadowed(const Rule* other, const Box& frame) const;
+
 private:
   const Action action_;
   Box box_;

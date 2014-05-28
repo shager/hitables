@@ -39,7 +39,7 @@ public:
     const size_t start = std::get<0>(domain);
     const size_t end = std::get<1>(domain);
     for (size_t i = start; i <= end; ++i)
-      rules_.push_back(rules[i]);
+      add_rule(rules[i]);
   }
 
   /*
@@ -112,7 +112,7 @@ public:
 
   inline size_t num_rules() const {return rules_.size();}
 
-  inline void add_rule(const Rule* rule) {rules_.push_back(rule);}
+  void add_rule(const Rule* rule);
 
   inline const Box& box() const {return box_;}
 

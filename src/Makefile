@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-Wall -Werror -pedantic-errors -std=c++0x -O0
+CFLAGS=-Wall -Werror -pedantic-errors -std=c++0x -O0 -ggdb
 TFLAGS=$(CFLAGS) -lboost_unit_test_framework
 
 hitables: hitables_main.cpp box.o rule.o action.o parse.o treenode.o arg.o \

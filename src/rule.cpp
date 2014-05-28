@@ -64,3 +64,42 @@ void Rule::delete_rules(RuleVector& rules) {
   for (size_t i = 0; i < num_rules; ++i)
     delete rules[i];
 }
+
+
+inline dim_t dim_max(const DimVector& v1, const DimVector& v2,
+    const size_t dim) {
+
+  const dim_t v1_min = std::get<0>(v1[dim]);
+  const dim_t v2_min = std::get<0>(v2[dim]);
+  return v1_min < v2_min ? v2_min : v1_min;
+}
+
+
+inline dim_t dim_min(const DimVector& v1, const DimVector& v2,
+    const size_t dim) {
+
+  const dim_t v1_min = std::get<1>(v1[dim]);
+  const dim_t v2_min = std::get<1>(v2[dim]);
+  return v1_min > v2_min ? v2_min : v1_min;
+}
+
+
+bool Rule::is_shadowed(const Rule* other, const Box& frame) const {
+  const DimVector& this_dims = box_.box_bounds();
+  const DimVector& other_dims = other->box().box_bounds();
+  const DimVector& frame_dims = frame.box_bounds();
+  const size_t num_dims = frame.num_dims();
+  for (size_t dim = 0; dim < num_dims; ++dim) {
+    // check lower bound
+    const dim_t this_start = dim_max(this_dims, frame_dims, dim);
+    const dim_t other_start = dim_max(other_dims, frame_dims, dim);
+    if (this_start < other_start)
+      return false;
+    // check upper bound
+    const dim_t this_end = dim_min(this_dims, frame_dims, dim);
+    const dim_t other_end = dim_min(other_dims, frame_dims, dim);
+    if (this_end > other_end)
+      return false;
+  }
+  return true;
+}

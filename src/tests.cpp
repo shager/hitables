@@ -426,6 +426,49 @@ BOOST_AUTO_TEST_CASE(treenode_compute_numbering) {
   BOOST_CHECK_EQUAL(root_child_3_children[0].id(), 6);
 }
 
+
+BOOST_AUTO_TEST_CASE(treenode_add_rule) {
+  RuleVector rules;
+  DimVector dims;
+  dims.push_back(make_tuple(1, 3));
+  TreeNode node(dims);
+  dims.clear();
+  BOOST_CHECK_EQUAL(node.num_rules(), 0);
+
+  dims.push_back(make_tuple(2, 2));
+  Box b1(dims);
+  dims.clear();
+  rules.push_back(new Rule(DROP, b1, ""));
+  node.add_rule(rules[0]);
+  BOOST_CHECK_EQUAL(node.num_rules(), 1);
+  node.add_rule(rules[0]);
+  BOOST_CHECK_EQUAL(node.num_rules(), 1);
+
+  dims.push_back(make_tuple(1, 1));
+  Box b2(dims);
+  dims.clear();
+  rules.push_back(new Rule(DROP, b2, ""));
+  node.add_rule(rules[1]);
+  BOOST_CHECK_EQUAL(node.num_rules(), 2);
+  node.add_rule(rules[1]);
+  BOOST_CHECK_EQUAL(node.num_rules(), 2);
+
+  Rule::delete_rules(rules);
+}
+
+
+BOOST_AUTO_TEST_CASE(treenode_build_tree_with_rule_redundancies) {
+  RuleVector rules;
+  rules.push_back(parse::parse_rule("-A bla -p tcp -j DROP"));
+  rules.push_back(parse::parse_rule("-A bla -p tcp -j DROP"));
+  DomainTuple domain(make_tuple(0, 1));
+  TreeNode tree(rules, domain);
+  tree.build_tree(4, 1, Arguments::DIM_CHOICE_MAX_DISTINCT);
+  BOOST_CHECK_EQUAL(tree.children().size(), 0);
+  BOOST_CHECK_EQUAL(tree.num_rules(), 1);
+  Rule::delete_rules(rules);
+}
+
 /*****************************************************************************
  *                         P A R S E   T E S T S                             *
  *****************************************************************************/
@@ -1224,8 +1267,8 @@ BOOST_AUTO_TEST_CASE(emit_emit_suffix) {
 BOOST_AUTO_TEST_CASE(emit_emit_leaf) {
   RuleVector rules;
   rules.push_back(parse::parse_rule("-A CHAIN -p tcp --sport 1 -j DROP"));
-  rules.push_back(parse::parse_rule("-A CHAIN -p tcp --sport 1 -j DROP"));
-  rules.push_back(parse::parse_rule("-A CHAIN -p tcp --sport 1 -j DROP"));
+  rules.push_back(parse::parse_rule("-A CHAIN -p tcp --sport 2 -j DROP"));
+  rules.push_back(parse::parse_rule("-A CHAIN -p tcp --sport 3 -j DROP"));
   DomainTuple domain(make_tuple(0, 2));
   TreeNode tree(rules, domain);
   Emitter emitter(NodeRefVector(), RuleVector(), DomainVector(),
@@ -1236,8 +1279,8 @@ BOOST_AUTO_TEST_CASE(emit_emit_leaf) {
   stringstream expect;
   expect << "# leaf node" << endl
       << "-A CURRENT_CHAIN -p tcp --sport 1 -j DROP" << endl 
-      << "-A CURRENT_CHAIN -p tcp --sport 1 -j DROP" << endl
-      << "-A CURRENT_CHAIN -p tcp --sport 1 -j DROP" << endl
+      << "-A CURRENT_CHAIN -p tcp --sport 2 -j DROP" << endl
+      << "-A CURRENT_CHAIN -p tcp --sport 3 -j DROP" << endl
       << "-A CURRENT_CHAIN -j NEXT_CHAIN" << endl << endl;
   BOOST_CHECK_EQUAL(out.str(), expect.str());
   Rule::delete_rules(rules);
@@ -1356,6 +1399,35 @@ BOOST_AUTO_TEST_CASE(rule_num_distinct_rules_in_dim_corner_cases) {
   Rule rule(DROP, box, "");
   rules.push_back(&rule);
   BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(0, rules), 1);
+}
+
+
+BOOST_AUTO_TEST_CASE(rule_is_shadowed) {
+  DimVector dims;
+  dims.push_back(make_tuple(2, 9));
+  dims.push_back(make_tuple(4, 6));
+  Box rule1_box(dims);
+  Rule rule1(DROP, rule1_box, "");
+  dims.clear();
+
+  dims.push_back(make_tuple(6, 7));
+  dims.push_back(make_tuple(5, 9));
+  Box rule2_box(dims);
+  Rule rule2(DROP, rule2_box, "");
+  dims.clear();
+
+  dims.push_back(make_tuple(0, 10));
+  dims.push_back(make_tuple(0, 10));
+  Box frame1(dims);
+  dims.clear();
+  BOOST_CHECK(!rule1.is_shadowed(&rule2, frame1));
+  BOOST_CHECK(!rule2.is_shadowed(&rule1, frame1));
+
+  dims.push_back(make_tuple(5, 8));
+  dims.push_back(make_tuple(4, 6));
+  Box frame2(dims);
+  BOOST_CHECK(!rule1.is_shadowed(&rule2, frame2));
+  BOOST_CHECK(rule2.is_shadowed(&rule1, frame2));
 }
 
 /*****************************************************************************
