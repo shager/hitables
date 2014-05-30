@@ -3,6 +3,8 @@ import sys
 import re
 import argparse
 
+PI_IP = "141.20.33.253"
+
 def parse_args(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("-r", "--runs", type=int)
@@ -32,6 +34,8 @@ class RuleGenerator(object):
     def generate(self):
         rule_nums = range(self.min_rules_, self.max_rules_ + 1,
                 self.increment_)
+        trace_cmd_template = "trace_generator 1 0.%d 1000 %s"
+        trace_cmd_template += " > /dev/null"
         for run_id in range(self.runs_):
             for rule_num in rule_nums:
                 cb_filename = os.path.join(self.target_dir_,
@@ -39,7 +43,32 @@ class RuleGenerator(object):
                 cb_cmd = "db_generator -r %d %s > /dev/null" % \
                         (rule_num, cb_filename)
                 os.system(cb_cmd)
+                self.adjust_cb_ruleset(cb_filename)
                 self.translate_cb_to_iptables(cb_filename)
+                for i in range(5):
+                    trace_cmd = trace_cmd_template % (i, cb_filename)
+                    os.system(trace_cmd)
+                    old_trace_fn = "%s_trace" % cb_filename
+                    new_trace_fn = "%s_%d.trace" % (
+                            os.path.basename(cb_filename).split(".")[0], i)
+                    new_trace_fn = os.path.join(self.target_dir_, new_trace_fn)
+                    os.system("mv %s %s" % (old_trace_fn, new_trace_fn))
+
+    def adjust_cb_ruleset(self, cb_filename):
+        with open(cb_filename, "r") as cb_file:
+            lines = cb_file.readlines()
+        for i in range(len(lines)):
+            lines[i] = self.adjust_cb_line(lines[i])
+        with open(cb_filename, "w") as cb_file:
+            cb_file.write("".join(lines))
+            
+    def adjust_cb_line(self, line):
+        parts = re.split("[ |\t]", line)
+        parts[1] = "%s/32" % PI_IP
+        del parts[-1]
+        del parts[-1]
+        parts[-1] = "0x11/0xFF\n"
+        return " ".join(parts)
 
     def translate_cb_to_iptables(self, cb_path):
         name = os.path.basename(cb_path).split(".")[0]
@@ -78,9 +107,11 @@ class RuleGenerator(object):
 
 def main(argv):
     args = parse_args(argv)
-    rule_generator = RuleGenerator(os.path.abspath(args.destination),
-            args.min_rules, args.max_rules, args.increment,
-            args.runs)
+    path = os.path.abspath(args.destination)
+    if not os.path.exists(path) or not os.path.isdir(path):
+        os.mkdir(path)
+    rule_generator = RuleGenerator(path, args.min_rules,
+            args.max_rules, args.increment, args.runs)
     rule_generator.generate()
         
 
