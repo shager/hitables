@@ -5,3 +5,4 @@ src/tests
 src/hitables
 src/*.rules
 eval/sender
+eval/benchmarks/*
