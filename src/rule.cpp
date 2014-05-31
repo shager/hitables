@@ -9,7 +9,7 @@ size_t Rule::num_distinct_rules_in_dim(const size_t dim,
 
   // sort rules by the given dimension
   std::sort(rules.begin(), rules.end(), [dim] (const Rule* a, const Rule* b) {
-    return a->box().box_bounds()[dim] <= b->box().box_bounds()[dim];
+    return a->box().box_bounds()[dim] < b->box().box_bounds()[dim];
   });
 
   // consider rules pairwise
