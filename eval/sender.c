@@ -188,116 +188,117 @@ main (int argc, char **argv)
     exit (EXIT_FAILURE);
   }
 
-  printf("input->num_packets = %zu\n", input->num_packets);
-  size_t packet_count;
-  for (packet_count = 0; packet_count < input->num_packets; ++packet_count) {
-    //strcpy (dst_ip, argv[1]);
+  do {
+    size_t packet_count;
+    for (packet_count = 0; packet_count < input->num_packets; ++packet_count) {
+      //strcpy (dst_ip, argv[1]);
 
-    // UDP data
-    datalen = 0;
-    //data[0] = 'T';
-    //data[1] = 'e';
-    //data[2] = 's';
-    //data[3] = 't';
+      // UDP data
+      datalen = 0;
+      //data[0] = 'T';
+      //data[1] = 'e';
+      //data[2] = 's';
+      //data[3] = 't';
 
-    // IPv4 header
+      // IPv4 header
 
-    // IPv4 header length (4 bits): Number of 32-bit words in header = 5
-    iphdr.ip_hl = IP4_HDRLEN / sizeof (uint32_t);
+      // IPv4 header length (4 bits): Number of 32-bit words in header = 5
+      iphdr.ip_hl = IP4_HDRLEN / sizeof (uint32_t);
 
-    // Internet Protocol version (4 bits): IPv4
-    iphdr.ip_v = 4;
+      // Internet Protocol version (4 bits): IPv4
+      iphdr.ip_v = 4;
 
-    // Type of service (8 bits)
-    iphdr.ip_tos = 0;
+      // Type of service (8 bits)
+      iphdr.ip_tos = 0;
 
-    // Total length of datagram (16 bits): IP header + UDP header + datalen
-    iphdr.ip_len = htons (IP4_HDRLEN + UDP_HDRLEN + datalen);
+      // Total length of datagram (16 bits): IP header + UDP header + datalen
+      iphdr.ip_len = htons (IP4_HDRLEN + UDP_HDRLEN + datalen);
 
-    // ID sequence number (16 bits): unused, since single datagram
-    iphdr.ip_id = htons (0);
+      // ID sequence number (16 bits): unused, since single datagram
+      iphdr.ip_id = htons (0);
 
-    // Flags, and Fragmentation offset (3, 13 bits): 0 since single datagram
+      // Flags, and Fragmentation offset (3, 13 bits): 0 since single datagram
 
-    // Zero (1 bit)
-    ip_flags[0] = 0;
+      // Zero (1 bit)
+      ip_flags[0] = 0;
 
-    // Do not fragment flag (1 bit)
-    ip_flags[1] = 0;
+      // Do not fragment flag (1 bit)
+      ip_flags[1] = 0;
 
-    // More fragments following flag (1 bit)
-    ip_flags[2] = 0;
+      // More fragments following flag (1 bit)
+      ip_flags[2] = 0;
 
-    // Fragmentation offset (13 bits)
-    ip_flags[3] = 0;
+      // Fragmentation offset (13 bits)
+      ip_flags[3] = 0;
 
-    iphdr.ip_off = htons ((ip_flags[0] << 15)
-                        + (ip_flags[1] << 14)
-                        + (ip_flags[2] << 13)
-                        +  ip_flags[3]);
+      iphdr.ip_off = htons ((ip_flags[0] << 15)
+                          + (ip_flags[1] << 14)
+                          + (ip_flags[2] << 13)
+                          +  ip_flags[3]);
 
-    // Time-to-Live (8 bits): default to maximum value
-    iphdr.ip_ttl = 255;
+      // Time-to-Live (8 bits): default to maximum value
+      iphdr.ip_ttl = 255;
 
-    // Transport layer protocol (8 bits): 17 for UDP
-    iphdr.ip_p = IPPROTO_UDP;
+      // Transport layer protocol (8 bits): 17 for UDP
+      iphdr.ip_p = IPPROTO_UDP;
 
-    // Source IPv4 address (32 bits)
-    //iphdr.ip_src.s_addr = rand() | (rand() << 16);
-    iphdr.ip_src.s_addr = input->src_ips[packet_count];
-    //inet_aton("8.8.9.255", &(iphdr.ip_src));
+      // Source IPv4 address (32 bits)
+      //iphdr.ip_src.s_addr = rand() | (rand() << 16);
+      iphdr.ip_src.s_addr = input->src_ips[packet_count];
+      //inet_aton("8.8.9.255", &(iphdr.ip_src));
 
-    // Destination IPv4 address (32 bits)
-    //inet_aton(dst_ip, &(iphdr.ip_dst));
-    iphdr.ip_dst.s_addr = input->dst_ip;
+      // Destination IPv4 address (32 bits)
+      //inet_aton(dst_ip, &(iphdr.ip_dst));
+      iphdr.ip_dst.s_addr = input->dst_ip;
 
-    // IPv4 header checksum (16 bits): set to 0 when calculating checksum
-    iphdr.ip_sum = 0;
-    iphdr.ip_sum = checksum ((uint16_t *) &iphdr, IP4_HDRLEN);
+      // IPv4 header checksum (16 bits): set to 0 when calculating checksum
+      iphdr.ip_sum = 0;
+      iphdr.ip_sum = checksum ((uint16_t *) &iphdr, IP4_HDRLEN);
 
-    // UDP header
+      // UDP header
 
-    // Source port number (16 bits): pick a number
-    //udphdr.source = htons (6000);
-    //udphdr.source = htons (rand() % 65536);
-    udphdr.source = input->src_ports[packet_count];
+      // Source port number (16 bits): pick a number
+      //udphdr.source = htons (6000);
+      //udphdr.source = htons (rand() % 65536);
+      udphdr.source = input->src_ports[packet_count];
 
-    // Destination port number (16 bits): pick a number
-    //udphdr.dest = htons (dst_port);
-    udphdr.dest = input->dst_ports[packet_count];
+      // Destination port number (16 bits): pick a number
+      //udphdr.dest = htons (dst_port);
+      udphdr.dest = input->dst_ports[packet_count];
 
-    // Length of UDP datagram (16 bits): UDP header + UDP data
-    udphdr.len = htons (UDP_HDRLEN + datalen);
+      // Length of UDP datagram (16 bits): UDP header + UDP data
+      udphdr.len = htons (UDP_HDRLEN + datalen);
 
-    // UDP checksum (16 bits)
-    //udphdr.check = udp4_checksum (iphdr, udphdr, data, datalen);
-    udphdr.check = 0;
+      // UDP checksum (16 bits)
+      //udphdr.check = udp4_checksum (iphdr, udphdr, data, datalen);
+      udphdr.check = 0;
 
-    // Prepare packet.
+      // Prepare packet.
 
-    // First part is an IPv4 header.
-    memcpy (packet, &iphdr, IP4_HDRLEN * sizeof (uint8_t));
+      // First part is an IPv4 header.
+      memcpy (packet, &iphdr, IP4_HDRLEN * sizeof (uint8_t));
 
-    // Next part of packet is upper layer protocol header.
-    memcpy ((packet + IP4_HDRLEN), &udphdr, UDP_HDRLEN * sizeof (uint8_t));
+      // Next part of packet is upper layer protocol header.
+      memcpy ((packet + IP4_HDRLEN), &udphdr, UDP_HDRLEN * sizeof (uint8_t));
 
-    // Finally, add the UDP data.
-    memcpy (packet + IP4_HDRLEN + UDP_HDRLEN, data, datalen * sizeof (uint8_t));
+      // Finally, add the UDP data.
+      memcpy (packet + IP4_HDRLEN + UDP_HDRLEN, data, datalen * sizeof (uint8_t));
 
-    // The kernel is going to prepare layer 2 information (ethernet frame header) for us.
-    // For that, we need to specify a destination for the kernel in order for it
-    // to decide where to send the raw datagram. We fill in a struct in_addr with
-    // the desired destination IP address, and pass this structure to the sendto() function.
-    memset (&sin, 0, sizeof (struct sockaddr_in));
-    sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = iphdr.ip_dst.s_addr;
+      // The kernel is going to prepare layer 2 information (ethernet frame header) for us.
+      // For that, we need to specify a destination for the kernel in order for it
+      // to decide where to send the raw datagram. We fill in a struct in_addr with
+      // the desired destination IP address, and pass this structure to the sendto() function.
+      memset (&sin, 0, sizeof (struct sockaddr_in));
+      sin.sin_family = AF_INET;
+      sin.sin_addr.s_addr = iphdr.ip_dst.s_addr;
 
-    // Send packet.
-    if (sendto (sd, packet, IP4_HDRLEN + UDP_HDRLEN + datalen, 0, (struct sockaddr *) &sin, sizeof (struct sockaddr)) < 0)  {
-      perror ("sendto() failed ");
-      exit (EXIT_FAILURE);
+      // Send packet.
+      if (sendto (sd, packet, IP4_HDRLEN + UDP_HDRLEN + datalen, 0, (struct sockaddr *) &sin, sizeof (struct sockaddr)) < 0)  {
+        perror ("sendto() failed ");
+        exit (EXIT_FAILURE);
+      }
     }
-  }
+  } while (loop_forever);
   // Close socket descriptor.
   close (sd);
 
