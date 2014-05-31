@@ -1402,6 +1402,21 @@ BOOST_AUTO_TEST_CASE(rule_num_distinct_rules_in_dim_corner_cases) {
 }
 
 
+BOOST_AUTO_TEST_CASE(rule_num_distinct_rules_in_dim_regression) {
+  std::vector<const Rule*> rules;
+
+  for (size_t i = 0; i < 10; ++i) {
+    DimVector dims;
+    dims.push_back(make_tuple(1, 1));
+    Box box(dims);
+    rules.push_back(new Rule(DROP, box, ""));
+  }
+  BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(0, rules), 0);
+  for (size_t i = 0; i < rules.size(); ++i)
+    delete rules[i];
+}
+
+
 BOOST_AUTO_TEST_CASE(rule_is_shadowed) {
   DimVector dims;
   dims.push_back(make_tuple(2, 9));
