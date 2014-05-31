@@ -40,17 +40,23 @@ class RuleGenerator(object):
             for rule_num in rule_nums:
                 cb_filename = os.path.join(self.target_dir_,
                         "%d_%d.cb" % (run_id, rule_num))
-                cb_cmd = "db_generator -r %d %s > /dev/null" % \
+                cb_cmd = "db_generator -r %d 1.0 1.0 %s > /dev/null" % \
                         (rule_num, cb_filename)
+                cm_cmd = "python gen_rules.py %d %d %d > %s" % (
+                        rule_num, 24, run_id, cb_filename)
                 os.system(cb_cmd)
                 self.adjust_cb_ruleset(cb_filename)
                 self.translate_cb_to_iptables(cb_filename)
                 for i in range(5):
                     trace_cmd = trace_cmd_template % (i, cb_filename)
                     os.system(trace_cmd)
+                    # read number of samples in trace file
                     old_trace_fn = "%s_trace" % cb_filename
-                    new_trace_fn = "%s_%d.trace" % (
-                            os.path.basename(cb_filename).split(".")[0], i)
+                    with open(old_trace_fn, "r") as trace_file:
+                        num_packets = len(trace_file.readlines())
+                    new_trace_fn = "%s_%d_%d.trace" % (
+                            os.path.basename(cb_filename).split(".")[0], i,
+                            num_packets)
                     new_trace_fn = os.path.join(self.target_dir_, new_trace_fn)
                     os.system("mv %s %s" % (old_trace_fn, new_trace_fn))
 
