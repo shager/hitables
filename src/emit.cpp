@@ -208,6 +208,7 @@ void emit_binary_port_dispatch(TreeNode* node, const std::string& chain,
       std::string target_chain(build_tree_chain_name(chain, tree_id,
           hicuts_children[lookup_index].id()));
       chains.push_back(target_chain);
+      out << "# binary search leaf node" << std::endl;
       out << "-A " << search_chain
           << " -j " << target_chain << std::endl;
     } else {
@@ -287,6 +288,7 @@ void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
       std::string target_chain(build_tree_chain_name(chain,
           tree_id, hicuts_children[lookup_index].id()));
       chains.push_back(target_chain);
+      out << "# binary search leaf node" << std::endl;
       out << "-A " << search_chain
           << " -j " << target_chain << std::endl;
     } else {
