@@ -102,6 +102,7 @@ Arguments Arguments::parse_arg_vector(const StrVector& arg_vector) {
   const size_t num_args = arg_vector.size();
   Arguments args;
   bool infile_specified = false;
+  bool outfile_specified = false;
   for (size_t i = 0; i < num_args; ++i) {
     const std::string& arg = arg_vector[i];
     if (arg == "--binth") {
@@ -141,6 +142,12 @@ Arguments Arguments::parse_arg_vector(const StrVector& arg_vector) {
       args.parse_infile(arg_vector[i]);
       infile_specified = true;
 
+    } else if (arg == "--outfile") {
+      ++i;
+      check_arg_index(i, num_args);
+      args.parse_outfile(arg_vector[i]);
+      outfile_specified = true;
+
     } else if (arg == "--random-seed") {
       ++i;
       check_arg_index(i, num_args);
@@ -154,6 +161,8 @@ Arguments Arguments::parse_arg_vector(const StrVector& arg_vector) {
   }
   if (!infile_specified)
     throw std::string("No input file specified (use --infile)!");
+  if (!outfile_specified)
+    throw std::string("No output file specified (use --outfile)!");
   return args;
 }
 

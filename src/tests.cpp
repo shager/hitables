@@ -1185,6 +1185,8 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
   vector.push_back("least-max");
   vector.push_back("--infile");
   vector.push_back("FILENAME");
+  vector.push_back("--outfile");
+  vector.push_back("OUTFILE");
   vector.push_back("--random-seed");
   vector.push_back("3");
 
@@ -1194,6 +1196,7 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
   BOOST_CHECK_EQUAL(a1.search(), Arguments::SEARCH_BINARY);
   BOOST_CHECK_EQUAL(a1.dim_choice(), Arguments::DIM_CHOICE_LEAST_MAX_RULES);
   BOOST_CHECK(a1.infile() == "FILENAME");
+  BOOST_CHECK_EQUAL(a1.outfile(), "OUTFILE");
   BOOST_CHECK_EQUAL(a1.random_seed(), 3);
 
   vector.clear();
@@ -1226,6 +1229,8 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector_verbose) {
   v.push_back("--verbose");
   v.push_back("--infile");
   v.push_back("blabla");
+  v.push_back("--outfile");
+  v.push_back("blabla");
   Arguments args(Arguments::parse_arg_vector(v));
   BOOST_CHECK(args.verbose());
 
@@ -1248,19 +1253,44 @@ BOOST_AUTO_TEST_CASE(emit_emit_non_applicable_rule) {
 }
 
 
+string read_file(std::string& filename) {
+  char buf[512];
+  ifstream in;
+  in.open(filename);
+  stringstream ss;
+  while (in.good()) {
+    in.get(buf, 512, '~');
+    ss << string(buf);
+  }
+  in.close();
+  return ss.str();
+}
+
+
 BOOST_AUTO_TEST_CASE(emit_emit_prefix) {
-  stringstream ss, out;
+  stringstream ss;
+  ofstream out;
+  string fn("_TEST_");
+  out.open(fn);
   ss << "*filter\n" << ":INPUT ACCEPT [0:0]\n" << ":FORWARD ACCEPT [0:0]\n"
       << ":OUTPUT ACCEPT [0:0]\n";
   Emitter::emit_prefix(out);
-  BOOST_CHECK_EQUAL(ss.str(), out.str());
+  out.close();
+  string result(read_file(fn));
+  remove(fn.c_str());
+  BOOST_CHECK_EQUAL(ss.str(), result);
 }
 
 
 BOOST_AUTO_TEST_CASE(emit_emit_suffix) {
-  stringstream out;
+  ofstream out;
+  string fn("_TEST_");
+  out.open(fn);
   Emitter::emit_suffix(out);
-  BOOST_CHECK_EQUAL("COMMIT\n", out.str());
+  out.close();
+  string result(read_file(fn));
+  remove(fn.c_str());
+  BOOST_CHECK_EQUAL("COMMIT\n", result);
 }
 
 

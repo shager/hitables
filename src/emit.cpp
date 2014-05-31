@@ -395,7 +395,7 @@ void Emitter::emit_leaf(const TreeNode* node, const std::string& current_chain,
 }
 
 
-void Emitter::emit_prefix(std::stringstream& out) {
+void Emitter::emit_prefix(std::ofstream& out) {
   out << "*filter" << std::endl
       << ":INPUT ACCEPT [0:0]" << std::endl
       << ":FORWARD ACCEPT [0:0]" << std::endl
@@ -403,7 +403,7 @@ void Emitter::emit_prefix(std::stringstream& out) {
 }
 
 
-void Emitter::emit_suffix(std::stringstream& out) {
+void Emitter::emit_suffix(std::ofstream& out) {
   out << "COMMIT" << std::endl;
 }
 

@@ -47,6 +47,9 @@ void out_msg(const std::string& str, const bool verbose) {
  * HiTables entry point
  */
 int main(int argc, char* argv[]) {
+  Clock::time_point total_start, total_end;
+  total_start = Clock::now();
+
   StrVector arg_vector;
   for (int i = 1; i < argc; ++i)
     arg_vector.push_back(argv[i]);
@@ -72,7 +75,14 @@ int main(int argc, char* argv[]) {
   srand(args.random_seed());
   Clock::time_point start, end;
   double time_span;
-  std::stringstream out;
+  std::ofstream out;
+  out.open(args.outfile());
+  if (!out.is_open()) {
+    std::stringstream ss;
+    ss << "Output file '" << args.outfile() << "' is not accessible!";
+    print_error(ss.str());
+    return EXIT_FAILURE;
+  }
 
   // parse rules
   RuleVector rules;
@@ -148,7 +158,9 @@ int main(int argc, char* argv[]) {
   Emitter::emit_prefix(out);
   out << chain_out.str() << rule_out.str();
   Emitter::emit_suffix(out);
-  std::cout << out.str();
+
+  // close output stream
+  out.close();
 
   // cleanup
   for (size_t i = 0; i < num_chains; ++i) {
@@ -162,6 +174,21 @@ int main(int argc, char* argv[]) {
     for (size_t j = 0; j < num_rules_in_chain; ++j)
       delete chain[j];
   }
+  total_end = Clock::now();
+
+  // write total runtime to generated file
+  time_span = duration(total_start, total_end);
+  StrVector generated_lines;
+  parse::file_read_lines(args.outfile(), generated_lines);
+  const size_t num_out_lines = generated_lines.size();
+  out.open(args.outfile());
+  size_t i = 0;
+  for (; i < 4; ++i)
+    out << generated_lines[i] << std::endl;
+  out << "# Total runtime: " << time_span << " seconds" << std::endl;
+  for (; i < num_out_lines; ++i)
+    out << generated_lines[i] << std::endl;
+  out.close();
 
   return EXIT_SUCCESS;
 }

@@ -8,8 +8,8 @@
 class Arguments {
 public:
   Arguments() : binth_(4), spfac_(4), dim_choice_(0),
-      search_(Arguments::SEARCH_LINEAR), infile_(""), verbose_(false),
-      min_rules_(10), random_seed_(0) {}
+      search_(Arguments::SEARCH_LINEAR), infile_(""), outfile_(""),
+      verbose_(false), min_rules_(10), random_seed_(0) {}
   
   Arguments& operator=(const Arguments& rhs) {
     binth_ = rhs.binth();
@@ -17,6 +17,7 @@ public:
     search_ = rhs.search();
     dim_choice_ = rhs.dim_choice();
     infile_ = rhs.infile();
+    outfile_ = rhs.outfile();
     verbose_ = rhs.verbose();
     min_rules_ = rhs.min_rules();
     random_seed_ = rhs.random_seed();
@@ -59,6 +60,10 @@ public:
   inline const std::string& infile() const {return infile_;}
   inline void parse_infile(const std::string& input) {infile_ = input;}
 
+  // output file
+  inline const std::string& outfile() const {return outfile_;}
+  inline void parse_outfile(const std::string& input) {outfile_ = input;}
+
   // verbose
   inline const bool verbose() const {return verbose_;}
   inline void set_verbose(const bool verbose) {verbose_ = verbose;}
@@ -84,6 +89,7 @@ private:
   size_t dim_choice_;
   size_t search_;
   std::string infile_;
+  std::string outfile_;
   bool verbose_;
   size_t min_rules_;
   size_t random_seed_;
