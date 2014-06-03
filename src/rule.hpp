@@ -106,6 +106,8 @@ public:
     output_policy_ = policy;
   }
 
+  ActionCode chain_policy(const std::string& chain) const;
+
 private:
   ActionCode input_policy_;
   ActionCode forward_policy_;

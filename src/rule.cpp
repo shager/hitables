@@ -103,3 +103,14 @@ bool Rule::is_shadowed(const Rule* other, const Box& frame) const {
   }
   return true;
 }
+
+
+ActionCode DefaultPolicies::chain_policy(const std::string& chain) const {
+  if (chain == "INPUT")
+    return input_policy();
+  if (chain == "FORWARD")
+    return forward_policy();
+  if (chain == "OUTPUT")
+    return output_policy();
+  return NONE;
+}

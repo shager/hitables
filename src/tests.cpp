@@ -1366,6 +1366,19 @@ BOOST_AUTO_TEST_CASE(emit_num_to_ip) {
   BOOST_CHECK_EQUAL(Emitter::num_to_ip(4294967295), "255.255.255.255");
 }
 
+
+BOOST_AUTO_TEST_CASE(emit_emit_custom_default_rule) {
+  Emitter e(NodeRefVector(), RuleVector(), DomainVector(),
+      Arguments::SEARCH_LINEAR);
+  
+  stringstream out;
+  DefaultPolicies policies;
+  e.emit_custom_default_rule("current_chain", REJECT, out);
+  stringstream ss;
+  ss << "-A current_chain -j REJECT" << endl;
+  BOOST_CHECK_EQUAL(out.str(), ss.str());
+}
+
 /*****************************************************************************
  *                           R U L E   T E S T S                             *
  *****************************************************************************/

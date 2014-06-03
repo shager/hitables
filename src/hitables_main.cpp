@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
   for (size_t i = 0; i < num_chains; ++i) {
     Emitter emitter(chain_trees[i], chains[i], chain_domains[i],
         args.search());
-    emitter.emit(rule_out, chain_names[i]);
+    emitter.emit(rule_out, chain_names[i], policies);
   }
 
   // emit chain names

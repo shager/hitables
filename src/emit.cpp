@@ -25,7 +25,17 @@ std::string build_bin_search_name(const std::string& chain,
 }
 
 
-void Emitter::emit(std::stringstream& out, StrVector& chains) {
+bool is_builtin_chain(const std::string& chain) {
+  const bool is_input = chain == "INPUT";
+  const bool is_output = chain == "OUTPUT";
+  const bool is_forward = chain == "FORWARD";
+  return (is_input || is_output || is_forward);
+}
+
+
+void Emitter::emit(std::stringstream& out, StrVector& chains,
+    const DefaultPolicies& policies) {
+
   const size_t num_rules = rules_.size();
   const size_t num_trees = trees_.size();
   if (num_rules == 0)
@@ -34,6 +44,7 @@ void Emitter::emit(std::stringstream& out, StrVector& chains) {
   size_t sub_chain_id = 0;
   std::string sub_chain(chain);
   std::string next_sub_chain(build_chain_name(chain, sub_chain_id));
+  const bool builtin_chain = is_builtin_chain(chain);
 
   size_t i = 0;
   for (size_t j = 0; j < num_trees; ++j) {
@@ -47,16 +58,25 @@ void Emitter::emit(std::stringstream& out, StrVector& chains) {
       ++i;
     }
     i = end + 1;
-    const bool leaf_jump = i != num_rules;
+    const bool leaf_jump = builtin_chain || (i != num_rules);
     emit_tree(trees_[j], sub_chain, j, next_sub_chain, leaf_jump, out, chains);
     sub_chain = next_sub_chain;
     ++sub_chain_id;
     next_sub_chain = build_chain_name(chain, sub_chain_id);
   }
-  if ((i < num_rules) && (num_trees > 0))
-    chains.push_back(sub_chain);
+  // remember the last index before emitting rules behind the last tree
+  const size_t last_i = i;
   for (; i < num_rules; ++i)
     emit_non_applicable_rule(rules_[i], sub_chain, out);
+  // if we have a builtin chain, emit a custom "default" policy as last rule in
+  // the chain
+  if (builtin_chain) {
+    chains.push_back(sub_chain);
+    emit_custom_default_rule(sub_chain, policies.chain_policy(chain), out);
+  } else
+    // remember the name of the last chain only if there were rules in it
+    if ((last_i < num_rules) && (num_trees > 0))
+      chains.push_back(sub_chain);
 }
 
 
@@ -426,6 +446,27 @@ void Emitter::emit_prefix(std::ofstream& out,
 
 void Emitter::emit_suffix(std::ofstream& out) {
   out << "COMMIT" << std::endl;
+}
+
+
+void Emitter::emit_custom_default_rule(const std::string& chain,
+    const ActionCode code, std::stringstream& out) {
+
+  out << "-A " << chain << " -j ";
+  switch (code) {
+    case DROP:
+      out << "DROP";
+      break;
+    case ACCEPT:
+      out << "ACCEPT";
+      break;
+    case REJECT:
+      out << "REJECT";
+      break;
+    default:
+      break;
+  }
+  out << std::endl;
 }
 
 

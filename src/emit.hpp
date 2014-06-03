@@ -18,7 +18,8 @@ public:
    * Computes the iptables representation of the given HiTables instance and
    * writes it to the specified out stream.
    */
-  void emit(std::stringstream& out, StrVector& chains);
+  void emit(std::stringstream& out, StrVector& chains,
+      const DefaultPolicies& policies);
 
   static void emit_prefix(std::ofstream& out, const DefaultPolicies& policies);
 
@@ -43,6 +44,9 @@ public:
   void emit_leaf(const TreeNode* node, const std::string& current_chain,
       const std::string& next_chain, const bool leaf_jump,
       std::stringstream& out);
+
+  void emit_custom_default_rule(const std::string& chain,
+      const ActionCode code, std::stringstream& out);
 
   static std::string num_to_ip(const dim_t ip_num);
 
