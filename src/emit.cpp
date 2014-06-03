@@ -395,11 +395,32 @@ void Emitter::emit_leaf(const TreeNode* node, const std::string& current_chain,
 }
 
 
-void Emitter::emit_prefix(std::ofstream& out) {
-  out << "*filter" << std::endl
-      << ":INPUT ACCEPT [0:0]" << std::endl
-      << ":FORWARD ACCEPT [0:0]" << std::endl
-      << ":OUTPUT ACCEPT [0:0]" << std::endl;
+void emit_policy(std::ofstream& out, const std::string& chain,
+    const ActionCode code) {
+
+  switch (code) {
+    case ACCEPT:
+      out << ":" << chain <<  " ACCEPT [0:0]" << std::endl;
+      break;
+    case REJECT:
+      out << ":" << chain <<  " REJECT [0:0]" << std::endl;
+      break;
+    case DROP:
+      out << ":" << chain << " DROP [0:0]" << std::endl;
+      break;
+    default:
+      break;
+  }
+}
+
+
+void Emitter::emit_prefix(std::ofstream& out,
+    const DefaultPolicies& policies) {
+
+  out << "*filter" << std::endl;
+  emit_policy(out, "INPUT", policies.input_policy());
+  emit_policy(out, "FORWARD", policies.forward_policy());
+  emit_policy(out, "OUTPUT", policies.output_policy());
 }
 
 

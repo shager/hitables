@@ -1309,10 +1309,13 @@ BOOST_AUTO_TEST_CASE(emit_emit_prefix) {
   stringstream ss;
   ofstream out;
   string fn("_TEST_");
+  DefaultPolicies policies;
+  policies.set_input_policy(DROP);
+  policies.set_output_policy(REJECT);
   out.open(fn);
-  ss << "*filter\n" << ":INPUT ACCEPT [0:0]\n" << ":FORWARD ACCEPT [0:0]\n"
-      << ":OUTPUT ACCEPT [0:0]\n";
-  Emitter::emit_prefix(out);
+  ss << "*filter\n" << ":INPUT DROP [0:0]\n"
+      << ":OUTPUT REJECT [0:0]\n";
+  Emitter::emit_prefix(out, policies);
   out.close();
   string result(read_file(fn));
   remove(fn.c_str());

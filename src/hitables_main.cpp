@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
   time_span = duration(start, end);
   out << "# iptables output generation: " << time_span << " seconds"
       << std::endl << std::endl;
-  Emitter::emit_prefix(out);
+  Emitter::emit_prefix(out, policies);
   out << chain_out.str() << rule_out.str();
   Emitter::emit_suffix(out);
 

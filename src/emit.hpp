@@ -20,7 +20,7 @@ public:
    */
   void emit(std::stringstream& out, StrVector& chains);
 
-  static void emit_prefix(std::ofstream& out);
+  static void emit_prefix(std::ofstream& out, const DefaultPolicies& policies);
 
   static void emit_suffix(std::ofstream& out);
 
