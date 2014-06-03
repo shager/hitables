@@ -51,7 +51,8 @@ int *allocate_intmem (int);
 
 
 void print_usage_and_exit(char* prog_name) {
-  printf("\nUsage: %s <TRACE FILE> <LOOP yes|no>\n\n", prog_name);
+  printf("\nUsage: %s <TRACE FILE> <LOOP yes|no> <WORST CASE yes|no>\n\n",
+      prog_name);
   exit(1);
 }
 
@@ -83,7 +84,7 @@ void free_input(Input* input) {
 }
 
 
-Input* read_trace_file(char* filename) {
+Input* read_trace_file(char* filename, int worst_case) {
   FILE* file = fopen(filename, "r");
   char buf[512];
   size_t num_lines = 0;
@@ -102,8 +103,8 @@ Input* read_trace_file(char* filename) {
 
     input->src_ips[i] = htonl(src_ip);
     input->dst_ip = htonl(dst_ip);
-    input->src_ports[i] = htons(src_port);
-    input->dst_ports[i] = htons(dst_port);
+    input->src_ports[i] = worst_case ? htons(65535) : htons(src_port);
+    input->dst_ports[i] = worst_case ? htons(65535) : htons(dst_port);
   }
   fclose(file);
   return input;
@@ -115,9 +116,8 @@ main (int argc, char **argv)
 {
 
   /* Handle input data */
-  if (argc != 3)
+  if (argc != 4)
     print_usage_and_exit(argv[0]);
-  Input* input = read_trace_file(argv[1]);
 
   int loop_forever;
   if (strcmp("yes", argv[2]) == 0)
@@ -126,10 +126,19 @@ main (int argc, char **argv)
     loop_forever = 0;
   else
     print_usage_and_exit(argv[0]);
+
+  int worst_case;
+  if (strcmp("yes", argv[3]) == 0)
+    worst_case = 1;
+  else if (strcmp("no", argv[3]) == 0)
+    worst_case = 0;
+  else
+    print_usage_and_exit(argv[0]);
   //const uint16_t dst_port = atoi(argv[2]);
 
   // set random seed
   //srand(atoi(argv[4]));
+  Input* input = read_trace_file(argv[1], worst_case);
 
   int status, datalen, sd, *ip_flags;
   const int on = 1;

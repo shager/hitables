@@ -22,7 +22,8 @@ def parse_args(argv):
 
 class RuleGenerator(object):
 
-    def __init__(self, target_dir, min_rules, max_rules, increment, runs):
+    def __init__(self, target_dir, min_rules, max_rules, increment, runs,
+            num_traces=1):
         assert os.path.isdir(target_dir)
         assert os.path.isabs(target_dir)
         self.target_dir_ = target_dir
@@ -30,8 +31,10 @@ class RuleGenerator(object):
         self.max_rules_ = max_rules
         self.increment_ = increment
         self.runs_ = runs
+        self.num_traces_ = num_traces
 
     def generate(self):
+        self.write_desc_file()
         rule_nums = range(self.min_rules_, self.max_rules_ + 1,
                 self.increment_)
         trace_cmd_template = "trace_generator 1 0.%d 1000 %s"
@@ -40,25 +43,28 @@ class RuleGenerator(object):
             for rule_num in rule_nums:
                 cb_filename = os.path.join(self.target_dir_,
                         "%d_%d.cb" % (run_id, rule_num))
-                cb_cmd = "db_generator -r %d 1.0 1.0 %s > /dev/null" % \
-                        (rule_num, cb_filename)
-                cm_cmd = "python gen_rules.py %d %d %d > %s" % (
-                        rule_num, 24, run_id, cb_filename)
+                cb_cmd = "python gen_rules.py %d %d %d %d > %s" % (
+                        rule_num, 24, 1000, run_id, cb_filename)
                 os.system(cb_cmd)
-                self.adjust_cb_ruleset(cb_filename)
                 self.translate_cb_to_iptables(cb_filename)
-                for i in range(5):
+                for i in range(self.num_traces_):
                     trace_cmd = trace_cmd_template % (i, cb_filename)
                     os.system(trace_cmd)
                     # read number of samples in trace file
                     old_trace_fn = "%s_trace" % cb_filename
-                    with open(old_trace_fn, "r") as trace_file:
-                        num_packets = len(trace_file.readlines())
-                    new_trace_fn = "%s_%d_%d.trace" % (
-                            os.path.basename(cb_filename).split(".")[0], i,
-                            num_packets)
+                    new_trace_fn = "%s_%d.trace" % (
+                            os.path.basename(cb_filename).split(".")[0], i)
                     new_trace_fn = os.path.join(self.target_dir_, new_trace_fn)
                     os.system("mv %s %s" % (old_trace_fn, new_trace_fn))
+
+    def write_desc_file(self):
+        desc_fn = os.path.join(self.target_dir_, "DESC.txt")
+        with open(desc_fn, "w") as desc_file:
+            desc_file.write("min_rules: %s\n" % self.min_rules_)
+            desc_file.write("max_rules: %s\n" % self.max_rules_)
+            desc_file.write("increment: %s\n" % self.increment_)
+            desc_file.write("runs: %s\n" % self.runs_)
+            desc_file.write("num_traces: %s\n" % self.num_traces_)
 
     def adjust_cb_ruleset(self, cb_filename):
         with open(cb_filename, "r") as cb_file:
