@@ -789,6 +789,38 @@ BOOST_AUTO_TEST_CASE(parse_parse_rule_not_applicable_with_chain) {
 }
 
 
+BOOST_AUTO_TEST_CASE(parse_parse_policy) {
+  DefaultPolicies policies;
+  BOOST_CHECK_EQUAL(policies.input_policy(), NONE);
+  parse::parse_policy(":INPUT DROP [0:0]", policies);
+  BOOST_CHECK_EQUAL(policies.input_policy(), DROP);
+
+  parse::parse_policy(":INPUT ACCEPT [0:0]", policies);
+  BOOST_CHECK_EQUAL(policies.input_policy(), ACCEPT);
+
+  parse::parse_policy(":INPUT REJECT [0:0]", policies);
+  BOOST_CHECK_EQUAL(policies.input_policy(), REJECT);
+
+  BOOST_CHECK_EQUAL(policies.forward_policy(), NONE);
+  BOOST_CHECK_EQUAL(policies.output_policy(), NONE);
+  parse::parse_policy(":FORWARD DROP [0:0]", policies);
+  BOOST_CHECK_EQUAL(policies.forward_policy(), DROP);
+  BOOST_CHECK_EQUAL(policies.output_policy(), NONE);
+  parse::parse_policy(":OUTPUT REJECT [0:0]", policies);
+  BOOST_CHECK_EQUAL(policies.forward_policy(), DROP);
+  BOOST_CHECK_EQUAL(policies.output_policy(), REJECT);
+
+  bool thrown = false;
+  try {
+    parse::parse_policy(":INPUT bla [0:0]", policies);
+  } catch (const std::string& msg) {
+    BOOST_CHECK_EQUAL(msg, "Default policy code 'bla' not understood!");
+    thrown = true;
+  }
+  BOOST_CHECK(thrown);
+}
+
+
 BOOST_AUTO_TEST_CASE(parse_parse_rules_values) {
   Rule* rule = parse::parse_rule("-A INPUT -p udp -m iprange --src-range 0.0.0.5-0.0.0.6 --dst-range 0.0.0.7-0.0.0.8 -m udp --sport 1:2 --dport 3:4 -j ACCEPT");
   BOOST_CHECK(rule->applicable());
@@ -838,7 +870,8 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules) {
   for (size_t i = 0; i < n; ++i)
     input.push_back(rule);
   RuleVector rules;
-  parse::parse_rules(input, rules);
+  DefaultPolicies policies;
+  parse::parse_rules(input, rules, policies);
   BOOST_CHECK_EQUAL(rules.size(), 10);
   Rule::delete_rules(rules);
 }
@@ -849,15 +882,19 @@ BOOST_AUTO_TEST_CASE(parse_parse_rules_with_meta_info) {
   input.push_back("# 1");
   input.push_back("# 2");
   input.push_back("*filter");
-  input.push_back(":INPUT [0:0]");
-  input.push_back(":FORWARD [0:0]");
-  input.push_back(":OUTPUT [0:0]");
+  input.push_back(":INPUT ACCEPT [0:0]");
+  input.push_back(":FORWARD DROP [0:0]");
+  input.push_back(":OUTPUT REJECT [0:0]");
   input.push_back("-A c -j DROP");
   input.push_back("COMMIT");
   input.push_back("# 3");
   RuleVector rules;
-  parse::parse_rules(input, rules);
+  DefaultPolicies policies;
+  parse::parse_rules(input, rules, policies);
   BOOST_CHECK_EQUAL(rules.size(), 1);
+  BOOST_CHECK_EQUAL(policies.input_policy(), ACCEPT);
+  BOOST_CHECK_EQUAL(policies.forward_policy(), DROP);
+  BOOST_CHECK_EQUAL(policies.output_policy(), REJECT);
   Rule::delete_rules(rules);
 }
 
@@ -953,7 +990,8 @@ BOOST_AUTO_TEST_CASE(parse_group_rules_by_chain_regression) {
   input.push_back("-A FORWARD -p icmp -j DROP");
   RuleVector rules;
   ChainVector chains;
-  parse::parse_rules(input, rules);
+  DefaultPolicies policies;
+  parse::parse_rules(input, rules, policies);
   parse::group_rules_by_chain(rules, chains);
   BOOST_CHECK_EQUAL(chains.size(), 1);
   Rule::delete_rules(rules);

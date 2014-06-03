@@ -83,8 +83,15 @@ namespace parse {
 
   /*
    * Parses the given input string into a vector of rule objects.
+   * Also determines the specified default policies.
    */
-  void parse_rules(const StrVector& input, RuleVector& rules);
+  void parse_rules(const StrVector& input, RuleVector& rules,
+      DefaultPolicies& policies);
+
+  /*
+   * Determines whether the given line specifies a policy for a builtin chain.
+   */
+  void parse_policy(const std::string& line, DefaultPolicies& policies);
 
   /*
    * Groups the given rules according to their chains.

@@ -310,12 +310,44 @@ Rule* parse::parse_rule(const std::string& input) {
 }
 
 
-void parse::parse_rules(const StrVector& input, RuleVector& rules) {
+ActionCode parse_policy_code(const std::string& word) {
+  if (word == "ACCEPT")
+    return ACCEPT;
+  if (word == "DROP")
+    return DROP;
+  if (word == "REJECT")
+    return REJECT;
+  std::stringstream ss;
+  ss << "Default policy code '" << word << "' not understood!";
+  throw ss.str();
+}
+
+
+void parse::parse_policy(const std::string& line, DefaultPolicies& policies) {
+  StrVector parts;
+  parse::split(line, " ", parts);
+  std::string& policy = parts[1];
+  if (parts[0] == ":INPUT")
+    policies.set_input_policy(parse_policy_code(policy));
+  else if (parts[0] == ":FORWARD")
+    policies.set_forward_policy(parse_policy_code(policy));
+  else if (parts[0] == ":OUTPUT")
+    policies.set_output_policy(parse_policy_code(policy));
+}
+
+
+void parse::parse_rules(const StrVector& input, RuleVector& rules,
+    DefaultPolicies& policies) {
+
   const size_t num_rules = input.size();
   for (size_t i = 0; i < num_rules; ++i) {
     const std::string& line = input[i];
-    if (line[0] == '#' || line[0] == ':' || line[0] == '*' || line == "COMMIT")
+    if (line[0] == '#' || line[0] == '*' || line == "COMMIT")
       continue;
+    if (line[0] == ':') {
+      parse::parse_policy(line, policies);
+      continue;
+    }
     rules.push_back(parse::parse_rule(input[i]));
   }
 }

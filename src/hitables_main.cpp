@@ -88,7 +88,8 @@ int main(int argc, char* argv[]) {
   RuleVector rules;
   ChainVector chains;
   start = Clock::now();
-  parse::parse_rules(input, rules);
+  DefaultPolicies policies;
+  parse::parse_rules(input, rules, policies);
   parse::group_rules_by_chain(rules, chains);
   end = Clock::now();
   time_span = duration(start, end);

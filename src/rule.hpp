@@ -84,4 +84,32 @@ private:
   size_t protocol_;
 };
 
+
+class DefaultPolicies {
+public:
+  DefaultPolicies() : input_policy_(NONE), forward_policy_(NONE),
+      output_policy_(NONE) {}
+
+  inline ActionCode input_policy() const {return input_policy_;}
+  inline ActionCode forward_policy() const {return forward_policy_;}
+  inline ActionCode output_policy() const {return output_policy_;}
+
+  inline void set_input_policy(const ActionCode policy) {
+    input_policy_ = policy;
+  }
+
+  inline void set_forward_policy(const ActionCode policy) {
+    forward_policy_ = policy;
+  }
+
+  inline void set_output_policy(const ActionCode policy) {
+    output_policy_ = policy;
+  }
+
+private:
+  ActionCode input_policy_;
+  ActionCode forward_policy_;
+  ActionCode output_policy_;
+};
+
 #endif // HITABLES_RULE_HPP
