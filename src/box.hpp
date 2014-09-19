@@ -22,6 +22,10 @@ public:
   void cut(const size_t dimension, const size_t num_cuts,
       std::vector<Box>& result_boxes) const;
 
+  void unequal_cut(const size_t dimension,
+      const std::vector<dim_t>& cut_points,
+      std::vector<Box>& result_boxes) const;
+
   bool collide(const Box& other) const;
 
   static size_t num_distinct_boxes_in_dim(const size_t dimension,

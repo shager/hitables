@@ -118,6 +118,42 @@ BOOST_AUTO_TEST_CASE(box_collide_two_dimensions) {
   BOOST_CHECK(!box4.collide(box1));
 }
 
+
+BOOST_AUTO_TEST_CASE(box_unequal_cut) {
+  DimVector bounds;
+  bounds.push_back(make_tuple(1, 7));
+  bounds.push_back(make_tuple(3, 5));
+  Box box(bounds);
+  vector<Box> result_boxes;
+  vector<dim_t> cut_points;
+
+  // cut along dimension 1
+  cut_points.push_back(2);
+  cut_points.push_back(3);
+  cut_points.push_back(5);
+  box.unequal_cut(0, cut_points, result_boxes);
+  BOOST_CHECK_EQUAL(result_boxes.size(), 4);
+  BOOST_CHECK(result_boxes[0].box_bounds()[0] == make_tuple(1, 2));
+  BOOST_CHECK(result_boxes[0].box_bounds()[1] == make_tuple(3, 5));
+  BOOST_CHECK(result_boxes[1].box_bounds()[0] == make_tuple(3, 3));
+  BOOST_CHECK(result_boxes[1].box_bounds()[1] == make_tuple(3, 5));
+  BOOST_CHECK(result_boxes[2].box_bounds()[0] == make_tuple(4, 5));
+  BOOST_CHECK(result_boxes[2].box_bounds()[1] == make_tuple(3, 5));
+  BOOST_CHECK(result_boxes[3].box_bounds()[0] == make_tuple(6, 7));
+  BOOST_CHECK(result_boxes[3].box_bounds()[1] == make_tuple(3, 5));
+
+  // cut along dimension 2
+  cut_points.clear();
+  cut_points.push_back(4);
+  result_boxes.clear();
+  box.unequal_cut(1, cut_points, result_boxes);
+  BOOST_CHECK_EQUAL(result_boxes.size(), 2);
+  BOOST_CHECK(result_boxes[0].box_bounds()[0] == make_tuple(1, 7));
+  BOOST_CHECK(result_boxes[0].box_bounds()[1] == make_tuple(3, 4));
+  BOOST_CHECK(result_boxes[1].box_bounds()[0] == make_tuple(1, 7));
+  BOOST_CHECK(result_boxes[1].box_bounds()[1] == make_tuple(5, 5));
+}
+
 /*****************************************************************************
  *                         A C T I O N   T E S T S                           *
  *****************************************************************************/
@@ -1498,6 +1534,95 @@ BOOST_AUTO_TEST_CASE(rule_num_distinct_rules_in_dim_regression) {
   BOOST_CHECK_EQUAL(Rule::num_distinct_rules_in_dim(0, rules), 0);
   for (size_t i = 0; i < rules.size(); ++i)
     delete rules[i];
+}
+
+
+BOOST_AUTO_TEST_CASE(rule_cut_points_one_dim_simple) {
+  DimVector bounds;
+  bounds.push_back(make_tuple(2, 4));
+  Box box1(bounds);
+  Rule rule1(DROP, box1, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(1, 1));
+  Box box2(bounds);
+  Rule rule2(DROP, box2, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(4, 7));
+  Box box3(bounds);
+  Rule rule3(DROP, box3, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(10, 12));
+  Box box4(bounds);
+  Rule rule4(DROP, box4, "");
+
+  vector<const Rule*> rules;
+  rules.push_back(&rule1);
+  rules.push_back(&rule2);
+  rules.push_back(&rule3);
+  rules.push_back(&rule4);
+
+  vector<dim_t> cut_points;
+  Rule::cut_points(0, rules, cut_points);
+  BOOST_CHECK_EQUAL(cut_points.size(), 2);
+  BOOST_CHECK_EQUAL(cut_points[0], 1);
+  BOOST_CHECK_EQUAL(cut_points[1], 7);
+}
+
+
+BOOST_AUTO_TEST_CASE(rule_cut_points_one_dim_evil) {
+  DimVector bounds;
+  bounds.push_back(make_tuple(5, 13));
+  Box box1(bounds);
+  Rule rule1(DROP, box1, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(7, 12));
+  Box box2(bounds);
+  Rule rule2(DROP, box2, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(14, 16));
+  Box box3(bounds);
+  Rule rule3(DROP, box3, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(0, 3));
+  Box box4(bounds);
+  Rule rule4(DROP, box4, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(17, 18));
+  Box box5(bounds);
+  Rule rule5(DROP, box5, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(15, 18));
+  Box box6(bounds);
+  Rule rule6(DROP, box6, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(19, 21));
+  Box box7(bounds);
+  Rule rule7(DROP, box7, "");
+
+  vector<const Rule*> rules;
+  rules.push_back(&rule1);
+  rules.push_back(&rule2);
+  rules.push_back(&rule3);
+  rules.push_back(&rule4);
+  rules.push_back(&rule5);
+  rules.push_back(&rule6);
+  rules.push_back(&rule7);
+
+  vector<dim_t> cut_points;
+  Rule::cut_points(0, rules, cut_points);
+  BOOST_CHECK_EQUAL(cut_points.size(), 3);
+  BOOST_CHECK_EQUAL(cut_points[0], 3);
+  BOOST_CHECK_EQUAL(cut_points[1], 13);
+  BOOST_CHECK_EQUAL(cut_points[2], 18);
 }
 
 

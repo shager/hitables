@@ -9,7 +9,8 @@ size_t Rule::num_distinct_rules_in_dim(const size_t dim,
 
   // sort rules by the given dimension
   std::sort(rules.begin(), rules.end(), [dim] (const Rule* a, const Rule* b) {
-    return a->box().box_bounds()[dim] < b->box().box_bounds()[dim];
+    return std::get<0>(a->box().box_bounds()[dim]) <
+           std::get<0>(b->box().box_bounds()[dim]);
   });
 
   // consider rules pairwise
@@ -38,6 +39,32 @@ size_t Rule::num_distinct_rules_in_dim(const size_t dim,
   if (current_start > highest_end)
     ++num_distinct;
   return num_distinct;
+}
+
+
+void Rule::cut_points(const size_t dim, std::vector<const Rule*>& rules,
+    std::vector<dim_t>& cut_points) {
+
+  const size_t num_rules = rules.size();
+  if (num_rules <= 1)
+    return;
+  // sort rules according to the given dimension by the interval start points
+  std::sort(rules.begin(), rules.end(), [dim] (const Rule* a, const Rule* b) {
+    return std::get<0>(a->box().box_bounds()[dim]) <
+           std::get<0>(b->box().box_bounds()[dim]);
+  });
+  const size_t until = num_rules - 1;
+  dim_t next_start;
+  dim_t this_end;
+  dim_t max_end = std::get<1>(rules[0]->box().box_bounds()[dim]);
+  for (size_t i = 0; i < until; ++i) {
+    this_end = std::get<1>(rules[i]->box().box_bounds()[dim]);
+    if (this_end > max_end)
+      max_end = this_end;
+    next_start = std::get<0>(rules[i + 1]->box().box_bounds()[dim]);
+    if (max_end < next_start)
+      cut_points.push_back(max_end);
+  }
 }
 
 

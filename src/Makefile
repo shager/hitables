@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-Wall -Werror -pedantic-errors -std=c++0x -O3
+CFLAGS=-Wall -Werror -pedantic-errors -std=c++0x -O0
 TFLAGS=$(CFLAGS) -lboost_unit_test_framework
 
 hitables: hitables_main.cpp box.o rule.o action.o parse.o treenode.o arg.o \
@@ -10,6 +10,9 @@ emit.o
 tests: tests.cpp box.o rule.o action.o parse.o treenode.o arg.o emit.o
 	$(CC) -o tests tests.cpp box.o rule.o action.o parse.o treenode.o arg.o \
 	emit.o $(TFLAGS)
+
+remove_redundancy: remove_redundancy.cpp parse.o
+	$(CC) -o remove_redundancy remove_redundancy.cpp parse.o $(CFLAGS)
 
 box.o: box.cpp box.hpp
 	$(CC) -c box.cpp $(CFLAGS)
@@ -42,3 +45,4 @@ clean:
 	rm -f emit.o
 	rm -f tests
 	rm -f hitables
+	rm -f remove_redundancy

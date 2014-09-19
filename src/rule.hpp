@@ -57,6 +57,9 @@ public:
   static size_t num_distinct_rules_in_dim(const size_t dim,
       std::vector<const Rule*>& rules);
 
+  static void cut_points(const size_t dim, std::vector<const Rule*>& rules,
+      std::vector<dim_t>& cut_points);
+
   bool operator==(const Rule& other) const;
 
   inline bool operator!=(const Rule& other) const {return !(*this == other);}

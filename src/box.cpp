@@ -40,6 +40,26 @@ void Box::cut(const size_t dimension, const size_t num_cuts,
 }
 
 
+void Box::unequal_cut(const size_t dimension,
+    const std::vector<dim_t>& cut_points,
+    std::vector<Box>& result_boxes) const {
+
+  dim_t start = std::get<0>(box_bounds_[dimension]);
+  const size_t num_cut_points = cut_points.size();
+  for (size_t i = 0; i < num_cut_points; ++i) {
+    const dim_t end = cut_points[i];
+    DimVector box_bounds(box_bounds_);
+    box_bounds[dimension] = std::make_tuple(start, end);
+    result_boxes.push_back(Box(box_bounds));
+    start = end + 1;
+  }
+  DimVector box_bounds(box_bounds_);
+  box_bounds[dimension] = std::make_tuple(start, std::get<1>(
+      box_bounds_[dimension]));
+  result_boxes.push_back(Box(box_bounds));
+}
+
+
 bool Box::collide(const Box& other) const {
   const DimVector& other_bounds = other.box_bounds();
   // two boxes do not collide if they are disjunct in at least one dimension
