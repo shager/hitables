@@ -1,29 +1,61 @@
 #include "treenode.hpp"
 
-void TreeNode::cut(const dim_t dimension, const size_t num_cuts) {
-  if (has_been_cut_)
-    return;
-  std::vector<Box> result_boxes;
-  box_.cut(dimension, num_cuts, result_boxes);
-  const size_t num_rules = rules_.size();
-  const size_t num_result_boxes = result_boxes.size();
+/*
+ * Takes the boxes resulting from a local cut and the rules in a tree node and
+ * builds up the children vector.
+ */
+static void build_children(const std::vector<Box>& result_boxes,
+    const std::vector<const Rule*>& rules,
+    std::vector<TreeNode>& children) {
 
-  // Check for each result box whether it collides with at least one rule.
-  // If yes, add a corresponding tree node to the children.
+  const size_t num_result_boxes = result_boxes.size();
+  const size_t num_rules = rules.size();
   for (size_t i = 0; i < num_result_boxes; ++i) {
     const Box& node_box = result_boxes[i];
     TreeNode node(node_box);
     for (size_t j = 0; j < num_rules; ++j) {
-      if (rules_[j]->box().collide(node_box))
-        node.add_rule(rules_[j]);
+      if (rules[j]->box().collide(node_box))
+        node.add_rule(rules[j]);
     }
     // add this node to the children if it is not empty
     if (node.num_rules() > 0)
-      children_.push_back(node);
+      children.push_back(node);
   }
+}
+
+
+void TreeNode::cut(const dim_t dimension, const size_t num_cuts) {
+  if (has_been_cut_)
+    return;
+  // perform the cut
+  std::vector<Box> result_boxes;
+  box_.cut(dimension, num_cuts, result_boxes);
+  build_children(result_boxes, rules_, children_);
+  // add meta information
   has_been_cut_ = true;
   cut_dim_ = dimension;
   num_cuts_ = num_cuts;
+}
+
+
+void TreeNode::unequal_cut(const dim_t dimension) {
+  if (has_been_cut_)
+    return;
+  std::vector<const Rule*> rules_copy(rules_);
+  std::vector<dim_t> cut_points;
+  Rule::cut_points(dimension, rules_copy, cut_points);
+  const size_t num_cut_points = cut_points.size();
+  // check if an unequal cut can be performed at at least one cut point
+  if (num_cut_points == 0)
+    return;
+  // perform the cut
+  std::vector<Box> result_boxes;
+  box_.unequal_cut(dimension, cut_points, result_boxes);
+  build_children(result_boxes, rules_, children_);
+  // add meta information
+  has_been_cut_ = true;
+  cut_dim_ = dimension;
+  num_cuts_ = num_cut_points;
 }
 
 
@@ -119,12 +151,19 @@ void TreeNode::build_tree(const size_t spfac, const size_t binth,
     fifo.pop();
     if (node->num_rules() <= binth)
       continue;
+
+
     if (dim_choice == Arguments::DIM_CHOICE_LEAST_MAX_RULES)
       cut_dim = node->dim_least_max_rules_per_child(spfac);
     else
       cut_dim = node->dim_max_distinct_rules();
     const size_t num_cuts = node->determine_number_of_cuts(cut_dim, spfac);
     node->cut(cut_dim, num_cuts);
+
+
+
+
+
     NodeVector& children = node->children();
     const size_t num_children = children.size();
     for (size_t i = 0; i < num_children; ++i) {

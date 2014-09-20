@@ -19,20 +19,20 @@ using namespace std;
   DimVector rule1_bounds;                         \
   rule1_bounds.push_back(make_tuple(1, 3));       \
   Box rule1_box(rule1_bounds);                    \
-  Rule rule1(DROP, rule1_box, "");                    \
+  Rule rule1(DROP, rule1_box, "");                \
                                                   \
   DimVector rule2_bounds;                         \
   rule2_bounds.push_back(make_tuple(4, 7));       \
-  Box rule2_box(rule2_bounds);                        \
-  Rule rule2(DROP, rule2_box, "");                            \
-                               \
+  Box rule2_box(rule2_bounds);                    \
+  Rule rule2(DROP, rule2_box, "");                \
+                                                  \
   DimVector rule3_bounds;                         \
   rule3_bounds.push_back(make_tuple(8, 10));      \
-  Box rule3_box(rule3_bounds);                        \
-  Rule rule3(DROP, rule3_box, "");                    \
+  Box rule3_box(rule3_bounds);                    \
+  Rule rule3(DROP, rule3_box, "");                \
                                                   \
-  node.add_rule(&rule1); \
-  node.add_rule(&rule2); \
+  node.add_rule(&rule1);                          \
+  node.add_rule(&rule2);                          \
   node.add_rule(&rule3);
 
 
@@ -204,6 +204,41 @@ BOOST_AUTO_TEST_CASE(treenode_cut_small_rules) {
   BOOST_CHECK_EQUAL(children[0].rules().size(), 3);
   for (size_t i = 0; i < 10; ++i)
     delete rule_pointers[i];
+}
+
+
+BOOST_AUTO_TEST_CASE(treenode_unequal_cut) {
+  SINGLE_DIM_NODE_WITH_THREE_RULES;
+  BOOST_CHECK(!node.has_been_cut());
+  node.unequal_cut(0);
+  BOOST_CHECK(node.has_been_cut());
+  const vector<TreeNode>& children = node.children();
+  BOOST_CHECK_EQUAL(children.size(), 3);
+  BOOST_CHECK_EQUAL(children[0].rules().size(), 1);
+  BOOST_CHECK(*children[0].rules()[0] == rule1);
+
+  BOOST_CHECK_EQUAL(children[1].rules().size(), 1);
+  BOOST_CHECK(*children[1].rules()[0] == rule2);
+
+  BOOST_CHECK_EQUAL(children[2].rules().size(), 1);
+  BOOST_CHECK(*children[2].rules()[0] == rule3);
+}
+
+
+BOOST_AUTO_TEST_CASE(treenode_unequal_cut_no_cut_possible) {
+  SINGLE_DIM_NODE_WITH_THREE_RULES;
+
+  // add fourth rule to render unequal cut impossible
+  DimVector rule4_bounds;    
+  rule4_bounds.push_back(make_tuple(0, 10));
+  Box rule4_box(rule4_bounds);
+  Rule rule4(DROP, rule4_box, "");
+
+  node.add_rule(&rule4);
+  BOOST_CHECK(!node.has_been_cut());
+  node.unequal_cut(0);
+  BOOST_CHECK(!node.has_been_cut());
+  BOOST_CHECK(node.children().empty());
 }
 
 
@@ -1216,6 +1251,35 @@ BOOST_AUTO_TEST_CASE(arg_parse_min_rules) {
 }
 
 
+BOOST_AUTO_TEST_CASE(arg_parse_cut_algo) {
+  Arguments args;
+  BOOST_CHECK_EQUAL(args.cut_algo(), Arguments::CUT_ALGO_EQUIDISTANT);
+  args.parse_cut_algo("unequal");
+  BOOST_CHECK_EQUAL(args.cut_algo(), Arguments::CUT_ALGO_UNEQUAL);
+  args.parse_cut_algo("equidistant");
+  BOOST_CHECK_EQUAL(args.cut_algo(), Arguments::CUT_ALGO_EQUIDISTANT);
+
+  StrVector fails;
+  fails.push_back("bla");
+  fails.push_back("equi");
+  fails.push_back(" ");
+  for (size_t i = 0; i < fails.size(); ++i) {
+    const string& fail = fails[i];
+    bool thrown = false;
+    try {
+      args.parse_cut_algo(fail);
+    } catch (const string& msg) {
+      thrown = true;
+      stringstream ss;
+      ss << "Invalid parameter --cut-algo ('" << fail << "'):";
+      ss << " must be 'equidistant' or 'unequal'!";
+      BOOST_CHECK(ss.str() == msg);
+    }
+    BOOST_CHECK(thrown);
+  }
+}
+
+
 BOOST_AUTO_TEST_CASE(arg_parse_random_seed) {
   Arguments args;
   BOOST_CHECK_EQUAL(args.random_seed(), 0);
@@ -1263,6 +1327,8 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
   vector.push_back("OUTFILE");
   vector.push_back("--random-seed");
   vector.push_back("3");
+  vector.push_back("--cut-algo");
+  vector.push_back("unequal");
 
   Arguments a1(Arguments::parse_arg_vector(vector));
   BOOST_CHECK_EQUAL(a1.binth(), 5);
@@ -1272,6 +1338,7 @@ BOOST_AUTO_TEST_CASE(arg_parse_arg_vector) {
   BOOST_CHECK(a1.infile() == "FILENAME");
   BOOST_CHECK_EQUAL(a1.outfile(), "OUTFILE");
   BOOST_CHECK_EQUAL(a1.random_seed(), 3);
+  BOOST_CHECK_EQUAL(a1.cut_algo(), Arguments::CUT_ALGO_UNEQUAL);
 
   vector.clear();
   bool thrown = false;

@@ -9,7 +9,8 @@ class Arguments {
 public:
   Arguments() : binth_(4), spfac_(4), dim_choice_(0),
       search_(Arguments::SEARCH_LINEAR), infile_(""), outfile_(""),
-      verbose_(false), min_rules_(10), random_seed_(0) {}
+      verbose_(false), min_rules_(10), random_seed_(0),
+      cut_algo_(Arguments::CUT_ALGO_EQUIDISTANT) {}
   
   Arguments& operator=(const Arguments& rhs) {
     binth_ = rhs.binth();
@@ -21,6 +22,7 @@ public:
     verbose_ = rhs.verbose();
     min_rules_ = rhs.min_rules();
     random_seed_ = rhs.random_seed();
+    cut_algo_ = rhs.cut_algo();
     return *this;
   }
 
@@ -49,6 +51,12 @@ public:
   static const size_t DIM_CHOICE_LEAST_MAX_RULES;
   inline size_t dim_choice() const {return dim_choice_;}
   void parse_dim_choice(const std::string& input);
+
+  // cut algorithm
+  static const size_t CUT_ALGO_EQUIDISTANT;
+  static const size_t CUT_ALGO_UNEQUAL;
+  inline size_t cut_algo() const {return cut_algo_;}
+  void parse_cut_algo(const std::string& input);
 
   // search parameter
   static const size_t SEARCH_LINEAR;
@@ -93,6 +101,7 @@ private:
   bool verbose_;
   size_t min_rules_;
   size_t random_seed_;
+  size_t cut_algo_;
 
   size_t parse_int_param(const std::string& input,
       const std::string& param, const size_t min, const size_t max);

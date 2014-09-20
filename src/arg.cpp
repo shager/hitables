@@ -6,6 +6,9 @@ const size_t Arguments::DIM_CHOICE_LEAST_MAX_RULES = 1;
 const size_t Arguments::SEARCH_LINEAR = 2;
 const size_t Arguments::SEARCH_BINARY = 3;
 
+const size_t Arguments::CUT_ALGO_EQUIDISTANT = 4;
+const size_t Arguments::CUT_ALGO_UNEQUAL = 5;
+
 inline bool is_digit(const char c) {
   return c >= 48 && c <= 57;
 }
@@ -85,6 +88,20 @@ void Arguments::parse_search(const std::string& input) {
 }
 
 
+void Arguments::parse_cut_algo(const std::string& input) {
+  if (input == "equidistant")
+    cut_algo_ = Arguments::CUT_ALGO_EQUIDISTANT;
+  else if (input == "unequal")
+    cut_algo_ = Arguments::CUT_ALGO_UNEQUAL;
+  else {
+    std::stringstream ss;
+    ss << "Invalid parameter --cut-algo ('" << input
+        << "'): must be 'equidistant' or 'unequal'!";
+    throw ss.str();
+  }
+}
+
+
 void Arguments::parse_random_seed(const std::string& input) {
   const size_t random_seed(parse_int_param(input, "--random-seed", 0, 65535));
   random_seed_ = random_seed;
@@ -152,6 +169,11 @@ Arguments Arguments::parse_arg_vector(const StrVector& arg_vector) {
       ++i;
       check_arg_index(i, num_args);
       args.parse_random_seed(arg_vector[i]);
+
+    } else if (arg == "--cut-algo") {
+      ++i;
+      check_arg_index(i, num_args);
+      args.parse_cut_algo(arg_vector[i]);
 
     } else {
       std::stringstream ss;

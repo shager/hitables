@@ -48,7 +48,13 @@ public:
    * Also, calling this method sets the cut_dim_ and num_cuts_ members.
    */
   void cut(const dim_t dimension, const size_t num_cuts);
-  
+ 
+  /*
+   * Performs a non-equidistant cut along the specified dimension.
+   * If there are no propper cut points, no cut is performed.
+   */
+  void unequal_cut(const dim_t dimension);
+
   /*
    * Computes the space measure functionality as defined in the HiCuts paper.
    */
@@ -157,6 +163,8 @@ public:
    */
   static Box minimal_bounding_box(const NodeVector& rules,
       const DomainTuple& domain);
+
+  inline bool has_been_cut() const {return has_been_cut_;}
 
 private:
   Box box_;
