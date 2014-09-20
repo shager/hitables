@@ -117,13 +117,14 @@ int main(int argc, char* argv[]) {
   // perform HiCuts transformation
   std::vector<NodeRefVector> chain_trees;
   const size_t dim_choice = args.dim_choice();
+  const size_t cut_algo = args.cut_algo();
   start = Clock::now();
   for (size_t i_chain = 0; i_chain < num_chains; ++i_chain) {
     chain_trees.push_back(NodeRefVector());
     for (size_t i = 0; i < num_domains; ++i) {
       const DomainTuple& domain = chain_domains[i_chain][i];
       TreeNode* tree_root = new TreeNode(chains[i_chain], domain);
-      tree_root->build_tree(args.spfac(), args.binth(), dim_choice);
+      tree_root->build_tree(args.spfac(), args.binth(), dim_choice, cut_algo);
       chain_trees[i_chain].push_back(tree_root);
     }
   }

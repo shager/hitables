@@ -112,9 +112,11 @@ public:
    * tree, as described in the paper.
    * dim_choice is a parameter that selects the algorithm for the choice of the
    * cut dimension.
+   * cut_algo determines whether equidistant or unequal cuts are performed
+   * during tree construction.
    */
   void build_tree(const size_t spfac, const size_t binth,
-      const size_t dim_choice);
+      const size_t dim_choice, const size_t cut_algo);
 
   inline size_t num_rules() const {return rules_.size();}
 

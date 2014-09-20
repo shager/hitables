@@ -534,7 +534,8 @@ BOOST_AUTO_TEST_CASE(treenode_build_tree_with_rule_redundancies) {
   rules.push_back(parse::parse_rule("-A bla -p tcp -j DROP"));
   DomainTuple domain(make_tuple(0, 1));
   TreeNode tree(rules, domain);
-  tree.build_tree(4, 1, Arguments::DIM_CHOICE_MAX_DISTINCT);
+  tree.build_tree(4, 1, Arguments::DIM_CHOICE_MAX_DISTINCT,
+      Arguments::CUT_ALGO_EQUIDISTANT);
   BOOST_CHECK_EQUAL(tree.children().size(), 0);
   BOOST_CHECK_EQUAL(tree.num_rules(), 1);
   Rule::delete_rules(rules);
