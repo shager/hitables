@@ -126,6 +126,9 @@ int main(int argc, char* argv[]) {
       TreeNode* tree_root = new TreeNode(chains[i_chain], domain);
       tree_root->build_tree(args.spfac(), args.binth(), dim_choice, cut_algo);
       chain_trees[i_chain].push_back(tree_root);
+      ///std::cout << "\n\n===\n";
+      ///std::cout << "FINISHED TREE " << (i + 1) << " OF " << num_domains << std::endl;
+      ///std::cout << "===\n\n";
     }
   }
   end = Clock::now();

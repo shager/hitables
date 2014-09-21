@@ -5,6 +5,7 @@
 #include <vector>
 #include <queue>
 #include <stack>
+#include <set>
 #include <cmath>
 #include "rule.hpp"
 #include "arg.hpp"
@@ -51,9 +52,10 @@ public:
  
   /*
    * Performs a non-equidistant cut along the specified dimension.
-   * If there are no propper cut points, no cut is performed.
+   * If there are no propper cut points specified, no cut is performed.
    */
-  void unequal_cut(const dim_t dimension);
+  void unequal_cut(const dim_t dimension,
+      const std::vector<dim_t>& cut_points);
 
   /*
    * Computes the space measure functionality as defined in the HiCuts paper.
@@ -100,6 +102,14 @@ public:
    * done to the tree node object during its execution.
    */
   size_t dim_least_max_rules_per_child(const size_t spfac);
+
+  /*
+   * Finds the dimension that provides the most distinct projection points of
+   * rule intervals.
+   * It also computes these projection points and stores them in the argument
+   * vector.
+   */
+  size_t dim_most_distinct_projection_points(std::vector<dim_t>& points) const;
 
   /*
    * Selects a random dimension for cutting.

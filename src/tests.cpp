@@ -63,6 +63,20 @@ BOOST_AUTO_TEST_CASE(box_cut_simple) {
 }
 
 
+BOOST_AUTO_TEST_CASE(box_cut_short_interval) {
+  DimVector bounds;
+  bounds.push_back(make_tuple(1, 2));
+  Box box(bounds);
+  vector<Box> boxes;
+  box.cut(0, 1, boxes);
+  BOOST_CHECK_EQUAL(boxes.size(), 2);
+  BOOST_CHECK_EQUAL(get<0>(boxes[0].box_bounds()[0]), 1);
+  BOOST_CHECK_EQUAL(get<1>(boxes[0].box_bounds()[0]), 1);
+  BOOST_CHECK_EQUAL(get<0>(boxes[1].box_bounds()[0]), 2);
+  BOOST_CHECK_EQUAL(get<1>(boxes[1].box_bounds()[0]), 2);
+}
+
+
 BOOST_AUTO_TEST_CASE(box_collide_one_dimension) {
   DimVector bounds1;
   bounds1.push_back(make_tuple(0, 2));
@@ -154,6 +168,12 @@ BOOST_AUTO_TEST_CASE(box_unequal_cut) {
   BOOST_CHECK(result_boxes[1].box_bounds()[1] == make_tuple(5, 5));
 }
 
+
+///BOOST_AUTO_TEST_CASE(box_unequal_cut_regression) {
+///  DimVector bounds;
+///  bounds.push_back();
+///}
+
 /*****************************************************************************
  *                         A C T I O N   T E S T S                           *
  *****************************************************************************/
@@ -210,7 +230,12 @@ BOOST_AUTO_TEST_CASE(treenode_cut_small_rules) {
 BOOST_AUTO_TEST_CASE(treenode_unequal_cut) {
   SINGLE_DIM_NODE_WITH_THREE_RULES;
   BOOST_CHECK(!node.has_been_cut());
-  node.unequal_cut(0);
+
+  vector<dim_t> cut_points;
+  std::vector<const Rule*> rules_copy(node.rules());
+  Rule::cut_points(0, rules_copy, cut_points);
+
+  node.unequal_cut(0, cut_points);
   BOOST_CHECK(node.has_been_cut());
   const vector<TreeNode>& children = node.children();
   BOOST_CHECK_EQUAL(children.size(), 3);
@@ -236,7 +261,12 @@ BOOST_AUTO_TEST_CASE(treenode_unequal_cut_no_cut_possible) {
 
   node.add_rule(&rule4);
   BOOST_CHECK(!node.has_been_cut());
-  node.unequal_cut(0);
+
+  vector<dim_t> cut_points;
+  std::vector<const Rule*> rules_copy(node.rules());
+  Rule::cut_points(0, rules_copy, cut_points);
+
+  node.unequal_cut(0, cut_points);
   BOOST_CHECK(!node.has_been_cut());
   BOOST_CHECK(node.children().empty());
 }
@@ -315,9 +345,23 @@ BOOST_AUTO_TEST_CASE(treenode_determine_number_of_cuts) {
     rule_pointers.push_back(rule);
   }
   BOOST_CHECK_EQUAL(node2.determine_number_of_cuts(0, 1), 4);
-  BOOST_CHECK_EQUAL(node2.determine_number_of_cuts(0, 2), 9);
+  BOOST_CHECK_EQUAL(node2.determine_number_of_cuts(0, 2), 10);
   for (size_t i = 0; i < 10; ++i)
     delete rule_pointers[i];
+}
+
+
+BOOST_AUTO_TEST_CASE(treenode_determine_number_of_cuts_short_interval) {
+  DimVector bounds;
+  bounds.push_back(make_tuple(1, 2));
+  Box box(bounds);
+  Rule rule(DROP, box, "");
+  DimVector node_bounds;
+  node_bounds.push_back(make_tuple(1, 2));
+  TreeNode node(node_bounds);
+  node.add_rule(&rule);
+  const size_t num_cuts = node.determine_number_of_cuts(0, 4);
+  BOOST_CHECK_EQUAL(num_cuts, 1);
 }
 
 
@@ -381,6 +425,83 @@ BOOST_AUTO_TEST_CASE(treenode_dim_least_max_rules_per_child) {
 
   const size_t dim = node.dim_least_max_rules_per_child(1);
   BOOST_CHECK_EQUAL(dim, 1);
+}
+
+
+BOOST_AUTO_TEST_CASE(treenode_most_distinct_projection_points) {
+  DimVector bounds;
+  bounds.push_back(make_tuple(2, 5));
+  bounds.push_back(make_tuple(5, 7));
+  Box box1(bounds);
+  Rule rule1(DROP, box1, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(2, 5));
+  bounds.push_back(make_tuple(1, 3));
+  Box box2(bounds);
+  Rule rule2(DROP, box2, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(0, 10));
+  bounds.push_back(make_tuple(0, 10));
+  TreeNode node(bounds);
+  node.add_rule(&rule1);
+  node.add_rule(&rule2);
+  
+  vector<dim_t> points;
+  const size_t dim = node.dim_most_distinct_projection_points(points);
+  BOOST_CHECK_EQUAL(dim, 1);
+  BOOST_CHECK_EQUAL(points.size(), 4);
+  BOOST_CHECK_EQUAL(points[0], 1);
+  BOOST_CHECK_EQUAL(points[1], 3);
+  BOOST_CHECK_EQUAL(points[2], 5);
+  BOOST_CHECK_EQUAL(points[3], 7);
+}
+
+
+BOOST_AUTO_TEST_CASE(treenode_most_distinct_projection_points_node_box) {
+  DimVector bounds;
+  bounds.push_back(make_tuple(12, 15));
+  bounds.push_back(make_tuple(7, 9));
+  Box box1(bounds);
+  Rule rule1(DROP, box1, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(16, 17));
+  bounds.push_back(make_tuple(7, 9));
+  Box box2(bounds);
+  Rule rule2(DROP, box2, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(18, 21));
+  bounds.push_back(make_tuple(7, 11));
+  Box box3(bounds);
+  Rule rule3(DROP, box3, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(6, 23));
+  bounds.push_back(make_tuple(6, 8));
+  Box box4(bounds);
+  Rule rule4(DROP, box4, "");
+
+  bounds.clear();
+  bounds.push_back(make_tuple(10, 20));
+  bounds.push_back(make_tuple(5, 10));
+  TreeNode node(bounds);
+  node.add_rule(&rule1);
+  node.add_rule(&rule2);
+  node.add_rule(&rule3);
+  node.add_rule(&rule4);
+
+  vector<dim_t> points;
+  const size_t dim = node.dim_most_distinct_projection_points(points);
+  BOOST_CHECK_EQUAL(dim, 0);
+  BOOST_CHECK_EQUAL(points.size(), 5);
+  BOOST_CHECK_EQUAL(points[0], 12);
+  BOOST_CHECK_EQUAL(points[1], 15);
+  BOOST_CHECK_EQUAL(points[2], 16);
+  BOOST_CHECK_EQUAL(points[3], 17);
+  BOOST_CHECK_EQUAL(points[4], 18);
 }
 
 
