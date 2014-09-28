@@ -98,7 +98,7 @@ size_t TreeNode::determine_number_of_cuts(const size_t dimension,
 #include <chrono>
 #include <thread>
 
-size_t TreeNode::dim_max_distinct_rules() const {
+std::tuple<size_t, bool> TreeNode::dim_max_distinct_rules() const {
   const size_t num_dims = box_.num_dims();
   size_t* distinct_rules = new size_t[num_dims];
   size_t max_distinct = 0;
@@ -134,7 +134,9 @@ size_t TreeNode::dim_max_distinct_rules() const {
   ////const size_t cut_dim = max_dims[rand() % max_dims.size()];
   const size_t cut_dim = max_span_dims[rand() % max_span_dims.size()];
   ///std::cout << "cut dim = " << cut_dim << std::endl;
-  return cut_dim;
+  //////return cut_dim;
+  const bool have_distinct_dim = max_distinct > 0;
+  return std::make_tuple(cut_dim, have_distinct_dim);
 }
 
 
@@ -219,13 +221,28 @@ void TreeNode::build_tree(const size_t spfac, const size_t binth,
       // equidistant cut
       if (dim_choice == Arguments::DIM_CHOICE_LEAST_MAX_RULES)
         cut_dim = node->dim_least_max_rules_per_child(spfac);
-      else
-        cut_dim = node->dim_max_distinct_rules();
+      else {
+        std::tuple<size_t, bool> distinct(node->dim_max_distinct_rules());
+        const bool have_distinct_dim = std::get<1>(distinct);
+        if (have_distinct_dim)
+          // if we have a dimension with distinct rules, take it
+          cut_dim = std::get<0>(distinct);
+        else {
+          // otherwise, try to find the dimension with most distinct projection
+          // points
+          std::vector<dim_t> unused;
+          cut_dim = node->dim_most_distinct_projection_points(unused);
+        }
+        ////////std::cout << "have distinct dim = " << have_distinct_dim << std::endl;
+        ////////std::cout << "cut dim = " << cut_dim << std::endl;
+      }
       const size_t num_cuts = node->determine_number_of_cuts(cut_dim, spfac);
       node->cut(cut_dim, num_cuts);
     } else {
       // unequal cut
-      cut_dim = node->dim_max_distinct_rules();
+      std::tuple<size_t, bool> distinct(node->dim_max_distinct_rules());
+      cut_dim = std::get<0>(distinct);
+      ///////////cut_dim = node->dim_max_distinct_rules();
       ////std::cout << "cut dim (distinct): " << cut_dim << std::endl;
       std::vector<dim_t> cut_points;
       std::vector<const Rule*> rules_copy(node->rules());
@@ -273,40 +290,43 @@ void TreeNode::build_tree(const size_t spfac, const size_t binth,
     ///}
     ///std::cout << "all same size = " << all_same_size << std::endl;
     ///if (all_same_size) {
-    ////std::cout << "Node: [" << std::get<0>(node->box().box_bounds()[cut_dim])
-    ////    << ", " << std::get<1>(node->box().box_bounds()[cut_dim]) << "]"
-    ////    << std::endl;
-    ////std::cout << "Rules: ";
-    ////const std::vector<const Rule*>& rules = node->rules();
-    ////const size_t num_dims = node->box().box_bounds().size();
-    ////for (size_t j = 0; j < num_dims; ++j) {
-    ////  if (j == cut_dim)
-    ////    std::cout << "CUT DIM\n"; 
-    ////  for (size_t i = 0; i < rules.size(); ++i) {
-    ////    std::cout << "[" << std::get<0>(rules[i]->box().box_bounds()[j])
-    ////        << ", " << std::get<1>(rules[i]->box().box_bounds()[j])
-    ////        << "] ";
-    ////  }
-    ////  std::cout << std::endl;
-    ////}
-    ////std::cout << "Children spans in cut dim: ";
-    ////for (size_t i = 0; i < num_children; ++i) {
-    ////  std::cout << "[" << std::get<0>(children[i].box().box_bounds()[cut_dim])
-    ////      << ", " << std::get<1>(children[i].box().box_bounds()[cut_dim])
-    ////      << "] ";
-    ////}
-    ////std::cout << std::endl;
+    ///////////std::cout << "Node: [" << std::get<0>(node->box().box_bounds()[cut_dim])
+    ///////////    << ", " << std::get<1>(node->box().box_bounds()[cut_dim]) << "]"
+    ///////////    << std::endl;
+    ///////////std::cout << "Rules: ";
+    ///////////const std::vector<const Rule*>& rules = node->rules();
+    ///////////const size_t num_dims = node->box().box_bounds().size();
+    ///////////for (size_t j = 0; j < num_dims; ++j) {
+    ///////////  std::cout << "- ";
+    ///////////  if (j == cut_dim)
+    ///////////    std::cout << "CUT DIM";
+    ///////////  std::cout << " -\n";
+    ///////////  for (size_t i = 0; i < rules.size(); ++i) {
+    ///////////    std::cout << "[" << std::get<0>(rules[i]->box().box_bounds()[j])
+    ///////////        << ", " << std::get<1>(rules[i]->box().box_bounds()[j])
+    ///////////        << "] ";
+    ///////////  }
+    ///////////  std::cout << std::endl;
+    ///////////}
+    ///////////std::cout << "Children spans in cut dim: ";
+    ///////////for (size_t i = 0; i < num_children; ++i) {
+    ///////////  std::cout << "[" << std::get<0>(children[i].box().box_bounds()[cut_dim])
+    ///////////      << ", " << std::get<1>(children[i].box().box_bounds()[cut_dim])
+    ///////////      << "] ";
+    ///////////}
+    ///////////std::cout << std::endl;
     ///}
 
+    //////std::cout << "Child rule sizes:" << std::endl;
     for (size_t i = 0; i < num_children; ++i) {
       TreeNode& child = children[i];
-      //std::cout << child.rules().size() << " ";
+      ///////std::cout << child.rules().size() << " ";
       if (child.num_rules() > binth)
         fifo.push(&child);
     }
-    ////std::cout << std::endl << "fifo size = " << fifo.size() << std::endl;
-    ////std::cout << "----------------------" <<  std::endl;
-    ////std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    //////std::cout << std::endl << "fifo size = " << fifo.size() << std::endl;
+    //////std::cout << "----------------------" <<  std::endl;
+    //////std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 }
 

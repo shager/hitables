@@ -383,8 +383,9 @@ BOOST_AUTO_TEST_CASE(treenode_dim_max_distinct_rules) {
   Rule rule2(DROP, Box(rule2_bounds), "");
   node.add_rule(&rule2);
 
-  const size_t dim = node.dim_max_distinct_rules();
-  BOOST_CHECK_EQUAL(dim, 0);
+  tuple<size_t, bool> distinct1(node.dim_max_distinct_rules());
+  BOOST_CHECK_EQUAL(get<0>(distinct1), 0);
+  BOOST_CHECK(get<1>(distinct1));
 
   TreeNode node2(bounds);
 
@@ -400,8 +401,31 @@ BOOST_AUTO_TEST_CASE(treenode_dim_max_distinct_rules) {
   Rule rule4(DROP, Box(rule4_bounds), "");
   node2.add_rule(&rule4);
 
-  const size_t dim2 = node2.dim_max_distinct_rules();
-  BOOST_CHECK_EQUAL(dim2, 1);
+  tuple<size_t, bool> distinct2(node2.dim_max_distinct_rules());
+  BOOST_CHECK_EQUAL(get<0>(distinct2), 1);
+  BOOST_CHECK(get<1>(distinct2));
+}
+
+BOOST_AUTO_TEST_CASE(treenode_dim_max_distinct_rules_false) {
+  DimVector bounds;
+  bounds.push_back(make_tuple(0, 10));
+  bounds.push_back(make_tuple(0, 10));
+  TreeNode node(bounds);
+
+  DimVector rule1_bounds;
+  rule1_bounds.push_back(make_tuple(1, 5));
+  rule1_bounds.push_back(make_tuple(0, 1));
+  Rule rule1(DROP, Box(rule1_bounds), "");
+  node.add_rule(&rule1);
+
+  DimVector rule2_bounds;
+  rule2_bounds.push_back(make_tuple(3, 9));
+  rule2_bounds.push_back(make_tuple(0, 1));
+  Rule rule2(DROP, Box(rule2_bounds), "");
+  node.add_rule(&rule2);
+
+  tuple<size_t, bool> distinct(node.dim_max_distinct_rules());
+  BOOST_CHECK(!get<1>(distinct));
 }
 
 

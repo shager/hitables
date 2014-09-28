@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <cstdio>
 #include "treenode.hpp"
-//#include "parse.hpp"
 
 class Emitter {
 public:
@@ -32,10 +31,6 @@ public:
       const std::string& chain, const size_t tree_id,
       const std::string& next_chain, const bool leaf_jump,
       std::stringstream& out, StrVector& chains);
-
-  void emit_simple_linear_dispatch(TreeNode* node,
-      const std::string& chain, const size_t tree_id,
-      const size_t chain_count, std::stringstream& out, StrVector& chains);
 
   void emit_simple_binary_dispatch(TreeNode* node,
       const std::string& chain, const size_t tree_id,

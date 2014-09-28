@@ -21,10 +21,10 @@ class TreeNode {
 public:
   TreeNode(const DimVector& bounds)
       : box_(bounds), has_been_cut_(false), cut_dim_(0), id_(0),
-      num_cuts_(0) {}
+      num_cuts_(0), path_length_(0) {}
 
   TreeNode(const Box& box) : box_(box), has_been_cut_(false), cut_dim_(0),
-      id_(0), num_cuts_(0) {}
+      id_(0), num_cuts_(0), path_length_(0) {}
 
   /*
    * Standard constructor to build a tree node.  rules is a vector of rules,
@@ -35,7 +35,8 @@ public:
    */
   TreeNode(const RuleVector& rules, const DomainTuple& domain) :
       box_(TreeNode::minimal_bounding_box(rules, domain)),
-      has_been_cut_(false), cut_dim_(0), id_(0), num_cuts_(0) {
+      has_been_cut_(false), cut_dim_(0), id_(0), num_cuts_(0),
+      path_length_(0) {
   
     const size_t start = std::get<0>(domain);
     const size_t end = std::get<1>(domain);
@@ -92,7 +93,7 @@ public:
    * If there is no such dimension, it randomly picks one of the highest
    * differing dimensions.
    */
-  size_t dim_max_distinct_rules() const;
+  std::tuple<size_t, bool> dim_max_distinct_rules() const;
 
   /*
    * Finds the dimension that exhibits with the least number of rules in the
@@ -148,6 +149,12 @@ public:
 
   std::string prot() const;
 
+  inline size_t path_length() const {return path_length_;}
+
+  inline void path_length(const size_t path_length) {
+    path_length_ = path_length;
+  }
+
   /*
    * Appends a child to the vector of children.
    * This method is intended to be used only for debugging purposes.
@@ -186,6 +193,7 @@ private:
   size_t cut_dim_;
   size_t id_;
   size_t num_cuts_;
+  size_t path_length_;
 
   inline size_t max(const size_t a, const size_t b) const {
     return a > b ? a : b;

@@ -1,5 +1,22 @@
 #include "emit.hpp"
 
+/* prototypes */
+
+static void emit_binary_port_dispatch(TreeNode* node, const std::string& chain,
+    const size_t tree_id, const size_t chain_count, const std::string& flag,
+    const size_t cut_dim, std::stringstream& out, StrVector& chains);
+
+static void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
+    const size_t tree_id, const size_t chain_count, const std::string& flag,
+    const size_t cut_dim, std::stringstream& out, StrVector& chains);
+
+static void emit_port_lookup(const std::string& search_chain,
+    const std::string& target_chain, const std::string& flag,
+    const TreeNode& lookup_child, const size_t cut_dim,
+    const Box& bounding_box, std::stringstream& out);
+
+/* implementation */
+
 std::string build_tree_chain_name(const std::string& chain,
     const size_t tree_id, const size_t chain_id) {
 
@@ -42,14 +59,15 @@ void Emitter::emit(std::stringstream& out, StrVector& chains,
     return;
   const std::string& chain = rules_[0]->chain();
   size_t sub_chain_id = 0;
-  std::string sub_chain(chain);
+  std::string sub_chain(build_chain_name(chain, sub_chain_id));
+  ++sub_chain_id;
   std::string next_sub_chain(build_chain_name(chain, sub_chain_id));
+  out << "-A " << chain << " -j " << sub_chain << std::endl;
   const bool builtin_chain = is_builtin_chain(chain);
 
   size_t i = 0;
   for (size_t j = 0; j < num_trees; ++j) {
-    if (j > 0)
-      chains.push_back(sub_chain);
+    chains.push_back(sub_chain);
     const DomainTuple& domain = domains_[j];
     const size_t start = std::get<0>(domain);
     const size_t end = std::get<1>(domain);
@@ -66,8 +84,9 @@ void Emitter::emit(std::stringstream& out, StrVector& chains,
   }
   // remember the last index before emitting rules behind the last tree
   const size_t last_i = i;
-  for (; i < num_rules; ++i)
+  for (; i < num_rules; ++i) {
     emit_non_applicable_rule(rules_[i], sub_chain, out);
+  }
   // if we have a builtin chain, emit a custom "default" policy as last rule in
   // the chain
   if (builtin_chain) {
@@ -75,8 +94,9 @@ void Emitter::emit(std::stringstream& out, StrVector& chains,
     emit_custom_default_rule(sub_chain, policies.chain_policy(chain), out);
   } else
     // remember the name of the last chain only if there were rules in it
-    if ((last_i < num_rules) && (num_trees > 0))
+    if ((last_i < num_rules) && (num_trees > 0)) {
       chains.push_back(sub_chain);
+    }
 }
 
 
@@ -90,6 +110,9 @@ void Emitter::emit_tree(TreeNode* tree,
   out << "# Tree " << tree_id << " for Chain " << chain << std::endl;
   out << "-A " << chain << " -p " << tree->prot() 
       << " -j " << start_chain << std::endl;
+  // default bail out to next chain if packet does not match tree
+  out << "-A " << chain << " -j " << next_chain << std::endl;
+
   chains.push_back(start_chain);
   NodeRefQueue node_fifo;
   node_fifo.push(tree);
@@ -102,80 +125,21 @@ void Emitter::emit_tree(TreeNode* tree,
           next_chain, leaf_jump, out);
     else {
       // emit the dispatch to child nodes
-      if (search_ == Arguments::SEARCH_LINEAR)
-        emit_simple_linear_dispatch(node, chain, tree_id, node->id(), out,
-            chains);
-      else if (search_ == Arguments::SEARCH_BINARY)
-        emit_simple_binary_dispatch(node, chain, tree_id, node->id(), out,
-            chains);
+      emit_simple_binary_dispatch(node, chain, tree_id, node->id(), out,
+          chains);
       // now ensure that all children of this node are traversed
       NodeVector& children = node->children();
       const size_t num_children = children.size();
-      for (size_t i = 0; i < num_children; ++i)
+      for (size_t i = 0; i < num_children; ++i) {
         node_fifo.push(&children[i]);
+      }
     }
   }
   out << std::endl;
 }
 
 
-void emit_linear_ip_dispatch(TreeNode* node, 
-    const std::string& chain, const size_t tree_id,
-    const size_t chain_count, const std::string& flag,
-    const size_t dim, std::stringstream& out, StrVector& chains) {
-
-  NodeVector& children = node->children();
-  const size_t num_children = children.size();
-  if (num_children == 0)
-    return;
-
-  std::string current_chain(build_tree_chain_name(chain, tree_id,
-      chain_count));
-  out << "# Linear search on " << flag << " ip field, chain " << current_chain
-      << std::endl;
-  for (size_t i = 0; i < num_children; ++i) {
-    TreeNode& child = children[i];
-    const DimTuple& range = child.box().box_bounds()[dim];
-    std::string jump_chain(build_tree_chain_name(chain, tree_id, child.id()));
-    chains.push_back(jump_chain);
-    out << "-A " << current_chain
-        << " -m iprange --" << flag << "-range "
-        << Emitter::num_to_ip(std::get<0>(range)) << "-"
-        << Emitter::num_to_ip(std::get<1>(range)) << " -j "
-        << jump_chain
-        << std::endl;
-  }
-  out << std::endl;
-}
-
-
-void emit_linear_port_dispatch(TreeNode* node, 
-    const std::string& chain, const size_t tree_id,
-    const size_t chain_count, const std::string& flag,
-    const size_t dim, std::stringstream& out, StrVector& chains) {
-
-  std::string current_chain(build_tree_chain_name(chain, tree_id,
-      chain_count));
-  out << "# Linear search on " << flag << " port field, chain "
-      << current_chain << std::endl;
-  NodeVector& children = node->children();
-  const size_t num_children = children.size();
-  for (size_t i = 0; i < num_children; ++i) {
-    TreeNode& child = children[i];
-    const DimTuple& range = child.box().box_bounds()[dim];
-    std::string jump_chain(build_tree_chain_name(chain, tree_id, child.id()));
-    chains.push_back(jump_chain);
-    out << "-A " << current_chain
-        << " -p " << node->prot() << " --" << flag << " "
-        << std::get<0>(range) << ":" << std::get<1>(range) << " -j "
-        << jump_chain
-        << std::endl;
-  }
-  out << std::endl;
-}
-
-
-void Emitter::emit_simple_linear_dispatch(TreeNode* node,
+void Emitter::emit_simple_binary_dispatch(TreeNode* node,
     const std::string& chain, const size_t tree_id,
     const size_t chain_count, std::stringstream& out, StrVector& chains) {
 
@@ -183,28 +147,28 @@ void Emitter::emit_simple_linear_dispatch(TreeNode* node,
   switch (cut_dim) {
     // src port
     case 0:
-      emit_linear_port_dispatch(node, chain, tree_id, chain_count, "sport",
+      emit_binary_port_dispatch(node, chain, tree_id, chain_count, "sport",
           cut_dim, out, chains);
       break;
     // dst port
     case 1:
-      emit_linear_port_dispatch(node, chain, tree_id, chain_count, "dport",
+      emit_binary_port_dispatch(node, chain, tree_id, chain_count, "dport",
           cut_dim, out, chains);
       break;
     // src address
     case 2:
-      emit_linear_ip_dispatch(node, chain, tree_id, chain_count, "src",
+      emit_binary_ip_dispatch(node, chain, tree_id, chain_count, "src",
           cut_dim, out, chains);
       break;
     // dst address
     case 3:
-      emit_linear_ip_dispatch(node, chain, tree_id, chain_count, "dst",
+      emit_binary_ip_dispatch(node, chain, tree_id, chain_count, "dst",
           cut_dim, out, chains);
   }
 }
 
 
-void emit_binary_port_dispatch(TreeNode* node, const std::string& chain,
+static void emit_binary_port_dispatch(TreeNode* node, const std::string& chain,
     const size_t tree_id, const size_t chain_count, const std::string& flag,
     const size_t cut_dim, std::stringstream& out, StrVector& chains) {
 
@@ -239,37 +203,37 @@ void emit_binary_port_dispatch(TreeNode* node, const std::string& chain,
           build_tree_chain_name(chain, tree_id, lookup_child.id()));
       chains.push_back(target_chain);
       out << "# check if binary search terminates" << std::endl;
-      out << "-A " << search_chain 
-          << " -p " << lookup_child.prot()
-          << " --" << flag
-          << " " << std::get<0>(lookup_child.box().box_bounds()[cut_dim])
-          << ":" << std::get<1>(lookup_child.box().box_bounds()[cut_dim])
-          << " -j " << target_chain << std::endl;
+      emit_port_lookup(search_chain, target_chain, flag, lookup_child, cut_dim,
+          lookup_child.box(), out);
+      ////out << "-A " << search_chain 
+      ////    << " -p " << lookup_child.prot()
+      ////    << " --" << flag
+      ////    << " " << std::get<0>(lookup_child.box().box_bounds()[cut_dim])
+      ////    << ":" << std::get<1>(lookup_child.box().box_bounds()[cut_dim])
+      ////    << " -j " << target_chain << std::endl;
       // emit test on the left child, if it exists
       if (bin_node->has_left_child()) {
         const BinSearchTree* left_node = bin_node->left();
-        //target_chain = build_chain_name(search_chain,
-        //    left_node->lookup_index());
         target_chain = build_bin_search_name(chain, tree_id, chain_count,
             left_node->lookup_index());
         chains.push_back(target_chain);
         Box bbox(TreeNode::minimal_bounding_box(hicuts_children,
             left_node->borders()));
         out << "# binary search left branch" << std::endl;
-        out << "-A " << search_chain
-            << " -p " << lookup_child.prot()
-            << " --" << flag
-            << " " << std::get<0>(bbox.box_bounds()[cut_dim])
-            << ":" << std::get<1>(bbox.box_bounds()[cut_dim])
-            << " -j " << target_chain << std::endl;
+        emit_port_lookup(search_chain, target_chain, flag, lookup_child,
+            cut_dim, bbox, out);
+        ////out << "-A " << search_chain
+        ////    << " -p " << lookup_child.prot()
+        ////    << " --" << flag
+        ////    << " " << std::get<0>(bbox.box_bounds()[cut_dim])
+        ////    << ":" << std::get<1>(bbox.box_bounds()[cut_dim])
+        ////    << " -j " << target_chain << std::endl;
         // ensure that the search continues on the left child
         fifo.push(bin_node->left());
       }
       // forward to right child
       out << "# binary search right branch" << std::endl;
       const BinSearchTree* right_node = bin_node->right();
-      //target_chain = build_chain_name(search_chain,
-      //    right_node->lookup_index());
       target_chain = build_bin_search_name(chain, tree_id, chain_count,
           right_node->lookup_index());
       chains.push_back(target_chain);
@@ -284,7 +248,7 @@ void emit_binary_port_dispatch(TreeNode* node, const std::string& chain,
 }
 
 
-void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
+static void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
     const size_t tree_id, const size_t chain_count, const std::string& flag,
     const size_t cut_dim, std::stringstream& out, StrVector& chains) {
 
@@ -331,8 +295,6 @@ void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
       if (bin_node->has_left_child()) {
         out << "# binary search left branch" << std::endl;
         const BinSearchTree* left_node = bin_node->left();
-        //target_chain = build_chain_name(
-        //    search_chain, left_node->lookup_index());
         target_chain = build_bin_search_name(chain, tree_id, chain_count,
             left_node->lookup_index());
         chains.push_back(target_chain);
@@ -352,8 +314,6 @@ void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
       // forward to right child
       out << "# binary search right branch" << std::endl;
       const BinSearchTree* right_node = bin_node->right();
-      //target_chain = build_chain_name(search_chain,
-      //    right_node->lookup_index());
       target_chain = build_bin_search_name(chain, tree_id, chain_count,
           right_node->lookup_index());
       chains.push_back(target_chain);
@@ -365,35 +325,6 @@ void emit_binary_ip_dispatch(TreeNode* node, const std::string& chain,
     at_first_search_node = false;
   }
   out << std::endl;
-}
-
-
-void Emitter::emit_simple_binary_dispatch(TreeNode* node,
-    const std::string& chain, const size_t tree_id,
-    const size_t chain_count, std::stringstream& out, StrVector& chains) {
-
-  const size_t cut_dim = node->cut_dim();
-  switch (cut_dim) {
-    // src port
-    case 0:
-      emit_binary_port_dispatch(node, chain, tree_id, chain_count, "sport",
-          cut_dim, out, chains);
-      break;
-    // dst port
-    case 1:
-      emit_binary_port_dispatch(node, chain, tree_id, chain_count, "dport",
-          cut_dim, out, chains);
-      break;
-    // src address
-    case 2:
-      emit_binary_ip_dispatch(node, chain, tree_id, chain_count, "src",
-          cut_dim, out, chains);
-      break;
-    // dst address
-    case 3:
-      emit_binary_ip_dispatch(node, chain, tree_id, chain_count, "dst",
-          cut_dim, out, chains);
-  }
 }
 
 
@@ -412,6 +343,20 @@ void Emitter::emit_leaf(const TreeNode* node, const std::string& current_chain,
   if (leaf_jump)
     out << "-A " << current_chain << " -j " << next_chain << std::endl;
   out << std::endl;
+}
+
+
+static void emit_port_lookup(const std::string& search_chain,
+    const std::string& target_chain, const std::string& flag,
+    const TreeNode& lookup_child, const size_t cut_dim,
+    const Box& bounding_box, std::stringstream& out) {
+  
+  out << "-A " << search_chain 
+      << " -p " << lookup_child.prot()
+      << " --" << flag
+      << " " << std::get<0>(bounding_box.box_bounds()[cut_dim])
+      << ":" << std::get<1>(bounding_box.box_bounds()[cut_dim])
+      << " -j " << target_chain << std::endl;
 }
 
 
